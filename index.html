@@ -3,13 +3,14 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>AI Signal Studio — EMA Strategy (Single + 3-Screen)</title>
+<title>AI Signal Studio — Main Chart (Clean + All Binance Markets + 50 Indicators)</title>
 <link rel="preconnect" href="https://unpkg.com"/>
 <script src="https://unpkg.com/lightweight-charts@4.1.1/dist/lightweight-charts.standalone.production.js"></script>
 <style>
   :root{
     --bg:#0b0f14; --panel:#0f1621; --panel2:#0b1320; --ink:#e6eef7; --muted:#9eb1c7;
     --line:#1a2736; --accent:#fcd535; --up:#16a34a; --down:#ef4444;
+    --good:#10b981; --warn:#f59e0b; --bad:#ef4444; --blue:#60a5fa; --violet:#a78bfa;
   }
   *{box-sizing:border-box}
   html,body{height:100%}
@@ -20,516 +21,934 @@
     font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif
   }
   header{
-    position:sticky;top:0;z-index:5;background:rgba(11,15,20,.85);backdrop-filter:blur(10px);
-    border-bottom:1px solid var(--line);display:flex;gap:14px;align-items:center;padding:10px 14px
+    position:sticky;top:0;z-index:2;background:rgba(11,15,20,.85);backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line);display:flex;gap:14px;align-items:center;padding:10px 14px;flex-wrap:wrap
   }
   header h1{font-size:16px;margin:0 10px 0 0;letter-spacing:.2px;color:#fff}
-  .spacer{flex:1}
+  .spacer{flex:1;min-width:10px}
   .ctrl{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
   .hint{font-size:12px;color:var(--muted)}
   select, input, button{
     background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:10px;
-    padding:8px 10px;font:inherit;outline:none;
+    padding:8px 10px;font:inherit;outline:none;appearance:none
   }
+  input[list]{min-width:160px}
   button{cursor:pointer}
-  .seg{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}
-  .seg button{border:0;padding:8px 12px;background:transparent}
-  .seg button.active{background:var(--panel2)}
   .wrap{
-    height:calc(100vh - 56px);
-    padding:12px; display:grid; gap:12px;
-    grid-template-rows: 1fr; /* replaced dynamically by view mode */
+    height:calc(100vh - 68px);
+    padding:12px;
   }
   .card{
     height:100%;
     background:linear-gradient(180deg,var(--panel),var(--panel2));
     border:1px solid var(--line);border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.25);
-    position:relative;overflow:hidden
+    position:relative;overflow:hidden;display:flex;flex-direction:column
   }
-  .card .title{
-    position:absolute;inset:8px auto auto 10px;font-size:12px;color:var(--muted);z-index:2;
-    background:rgba(255,255,255,.04);padding:4px 8px;border-radius:8px;border:1px solid var(--line)
-  }
-  .slot{position:absolute;inset:0}
-  /* top status for 3-screen */
-  .tri-status{
-    position:absolute;top:10px;right:10px;z-index:3;
-    display:flex;align-items:center;gap:10px;
-    background:rgba(255,255,255,.06);border:1px solid var(--line);
-    padding:8px 10px;border-radius:12px;backdrop-filter:blur(8px)
-  }
-  .dot{width:10px;height:10px;border-radius:50%}
-  .badge{font-size:12px}
-  .legend{
-    position:absolute;left:10px;bottom:10px;z-index:3;
-    display:flex;gap:10px;flex-wrap:wrap;color:#c8d7ea;font-size:11px;
-    background:rgba(255,255,255,.05);border:1px solid var(--line);
-    padding:6px 8px;border-radius:8px
-  }
-  .legend .k{display:flex;align-items:center;gap:6px}
-  .legend .sw{width:18px;height:2px;border-radius:2px}
-  /* per-panel rule badge */
-  .rule{
-    position:absolute;top:10px;left:10px;z-index:3;
-    display:flex;gap:8px;align-items:center;
-    background:rgba(255,255,255,.06);border:1px solid var(--line);
-    padding:6px 8px;border-radius:10px;font-size:11px
-  }
+  .slot{position:relative}
+  .row{display:grid;grid-template-rows:auto 160px;gap:2px;height:100%}
+  .pane{position:relative}
+  .pane .inner{position:absolute;inset:0}
+  .pill{font-size:12px;padding:4px 8px;border:1px solid var(--line);border-radius:999px;color:var(--muted)}
+  .legend{position:absolute;right:8px;top:8px;background:rgba(8,12,18,.7);border:1px solid var(--line);
+    padding:6px 8px;border-radius:10px;font-size:12px;color:#d7e4ff}
+  .hide{display:none}
 </style>
 </head>
 <body>
 <header>
-  <h1>AI Signal Studio — EMA Strategy</h1>
-  <div class="spacer"></div>
+  <h1>AI Signal Studio — Main Chart</h1>
+
   <div class="ctrl">
+    <span class="pill" id="status">Loading markets…</span>
+  </div>
+
+  <div class="spacer"></div>
+
+  <div class="ctrl">
+    <label class="hint">Market</label>
+    <select id="quote">
+      <option value="USDT" selected>USDT</option>
+      <option value="FDUSD">FDUSD</option>
+      <option value="USDC">USDC</option>
+      <option value="BTC">BTC</option>
+      <option value="ETH">ETH</option>
+      <option value="BNB">BNB</option>
+      <option value="TRY">TRY</option>
+    </select>
+
     <label class="hint">Symbol</label>
-    <input id="symbol" list="pairs" value="BTCUSDT" style="min-width:140px" />
-    <datalist id="pairs">
-      <option>BTCUSDT</option><option>ETHUSDT</option><option>BNBUSDT</option><option>SOLUSDT</option>
-      <option>XRPUSDT</option><option>ADAUSDT</option><option>DOGEUSDT</option><option>TONUSDT</option>
-      <option>AVAXUSDT</option><option>TRXUSDT</option><option>LINKUSDT</option><option>MATICUSDT</option>
-      <option>NEARUSDT</option><option>OPUSDT</option><option>ARBUSDT</option><option>DOTUSDT</option>
-      <option>ATOMUSDT</option><option>LTCUSDT</option><option>ETCUSDT</option><option>FILUSDT</option>
-    </datalist>
+    <input id="symbol" list="pairs" placeholder="Select pair…" />
+    <datalist id="pairs"></datalist>
+
     <label class="hint">TF</label>
     <select id="tf">
-      <option value="5m">5m</option><option value="15m" selected>15m</option><option value="1h">1h</option>
+      <option value="1m">1m</option><option value="3m">3m</option>
+      <option value="5m" selected>5m</option>
+      <option value="15m">15m</option><option value="30m">30m</option>
+      <option value="1h">1h</option><option value="2h">2h</option>
       <option value="4h">4h</option><option value="1d">1d</option>
     </select>
-    <div class="seg" id="viewSeg">
-      <button data-view="single">Single</button>
-      <button class="active" data-view="tri">3-Screen</button>
-    </div>
     <button id="reload">Load</button>
+  </div>
+
+  <div class="ctrl">
+    <label class="hint">Indicator</label>
+    <select id="indicator" style="min-width:280px">
+      <optgroup label="Moving Averages">
+        <option value="sma:9">SMA (9)</option>
+        <option value="sma:20">SMA (20)</option>
+        <option value="sma:50">SMA (50)</option>
+        <option value="sma:200">SMA (200)</option>
+        <option value="ema:9">EMA (9)</option>
+        <option value="ema:20" selected>EMA (20)</option>
+        <option value="ema:50">EMA (50)</option>
+        <option value="ema:200">EMA (200)</option>
+        <option value="wma:20">WMA (20)</option>
+        <option value="rma:14">RMA/Wilder (14)</option>
+        <option value="vwma:20">VWMA (20)</option>
+        <option value="hma:55">HMA (55)</option>
+        <option value="kama:10">KAMA (10)</option>
+        <option value="dema:20">DEMA (20)</option>
+        <option value="tema:20">TEMA (20)</option>
+        <option value="emaRibbon:8,13,21,34,55">EMA Ribbon (8/13/21/34/55)</option>
+      </optgroup>
+      <optgroup label="Trend / Volatility (Overlay)">
+        <option value="bb:20,2">Bollinger Bands (20, 2)</option>
+        <option value="bb:20,3">Bollinger Bands (20, 3)</option>
+        <option value="kc:20,2">Keltner Channels (20, 2ATR)</option>
+        <option value="donchian:20">Donchian Channels (20)</option>
+        <option value="supertrend:10,3">Supertrend (10, 3)</option>
+        <option value="supertrend:14,2">Supertrend (14, 2)</option>
+        <option value="psar:0.02,0.2">Parabolic SAR (0.02, 0.2)</option>
+        <option value="ichimoku:9,26,52">Ichimoku (9/26/52)</option>
+        <option value="vwap">VWAP (session)</option>
+        <option value="fractals:2">Bill Williams Fractals</option>
+      </optgroup>
+      <optgroup label="Oscillators (Pane)">
+        <option value="rsi:14">RSI (14)</option>
+        <option value="rsi:7">RSI (7)</option>
+        <option value="stoch:14,3,3">%K%D Stochastic (14,3,3)</option>
+        <option value="stochrsi:14">Stoch RSI (14)</option>
+        <option value="macd:12,26,9">MACD (12,26,9)</option>
+        <option value="macd:24,52,18">MACD (24,52,18)</option>
+        <option value="cci:20">CCI (20)</option>
+        <option value="adx:14">ADX +DI/−DI (14)</option>
+        <option value="atr:14">ATR (14)</option>
+        <option value="obv">OBV</option>
+        <option value="mfi:14">MFI (14)</option>
+        <option value="cmf:20">Chaikin Money Flow (20)</option>
+        <option value="aroon:14">Aroon (14)</option>
+        <option value="roc:12">ROC % (12)</option>
+        <option value="willr:14">Williams %R (14)</option>
+        <option value="trix:15">TRIX (15)</option>
+        <option value="mom:10">Momentum % (10)</option>
+        <option value="ppo:12,26,9">PPO (12,26,9)</option>
+        <option value="percentb:20,2">%B (BB %B, 20,2)</option>
+        <option value="uo:7,14,28">Ultimate Oscillator (7,14,28)</option>
+        <option value="dpo:20">DPO (20)</option>
+        <option value="eom:14">Ease of Movement (14)</option>
+      </optgroup>
+      <!-- ~50 selections total (variations count) -->
+    </select>
+    <button id="applyIndi">Apply</button>
   </div>
 </header>
 
-<div class="wrap" id="wrap">
-  <!-- Single main chart -->
-  <div class="card" id="singleCard" style="display:none">
-    <div class="title">Single Chart — Price + EMA 9/20/50/200 + BB + Supertrend + EMA Entry Arrows</div>
-    <div class="legend">
-      <div class="k"><span class="sw" style="background:#22d3ee"></span>EMA 9</div>
-      <div class="k"><span class="sw" style="background:#60a5fa"></span>EMA 20</div>
-      <div class="k"><span class="sw" style="background:#f59e0b"></span>EMA 50</div>
-      <div class="k"><span class="sw" style="background:#a78bfa"></span>EMA 200</div>
-      <div class="k"><span class="sw" style="background:#93c5fd"></span>BB</div>
-      <div class="k"><span class="sw" style="background:#22c55e"></span>Supertrend</div>
-    </div>
-    <div class="slot" id="c-single"></div>
-  </div>
-
-  <!-- 3-screen multi-timeframe -->
-  <div class="card" id="triCard">
-    <div class="title">3-Screen (4H • 1H • 15m)</div>
-    <div class="tri-status" id="triStatus">
-      <div class="dot" id="triDot"></div>
-      <div class="badge" id="triText">Checking…</div>
-    </div>
-    <div class="slot" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:8px">
-      <!-- 4H -->
-      <div class="card" style="height:auto">
-        <div class="rule" id="r4h">4H: price above EMA-200?</div>
-        <div class="slot" id="c-4h"></div>
+<div class="wrap">
+  <div class="card" id="main">
+    <div class="row">
+      <div class="pane" id="pane-price">
+        <div class="inner" id="c-main"></div>
+        <div class="legend" id="legend-main">—</div>
       </div>
-      <!-- 1H -->
-      <div class="card" style="height:auto">
-        <div class="rule" id="r1h">1H: pullback near EMA-50?</div>
-        <div class="slot" id="c-1h"></div>
-      </div>
-      <!-- 15m -->
-      <div class="card" style="height:auto">
-        <div class="rule" id="r15">15m: 9↑20 + bullish engulfing?</div>
-        <div class="legend" style="left:auto;right:10px">
-          <div class="k"><span class="sw" style="background:#22d3ee"></span>EMA 9</div>
-          <div class="k"><span class="sw" style="background:#60a5fa"></span>EMA 20</div>
-        </div>
-        <div class="slot" id="c-15m"></div>
+      <div class="pane" id="pane-indi">
+        <div class="inner" id="c-indi"></div>
+        <div class="legend" id="legend-indi">—</div>
       </div>
     </div>
   </div>
 </div>
 
 <script>
-/* ========= Utilities & Indicators ========= */
-async function fetchKlines(symbol, interval, limit=800){
-  const url = `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=${interval}&limit=${limit}`;
-  const res = await fetch(url);
-  const raw = await res.json();
-  if(!Array.isArray(raw)) throw new Error(JSON.stringify(raw));
-  return raw.map(k=>({
-    time: Math.floor(k[0]/1000),
-    open: +k[1], high: +k[2], low:+k[3], close:+k[4],
-    volume:+k[5]
-  }));
-}
-const SMA=(arr,p,acc=x=>x)=>{const o=Array(arr.length).fill(null);let s=0;for(let i=0;i<arr.length;i++){s+=acc(arr[i]);if(i>=p)s-=acc(arr[i-p]);if(i>=p-1)o[i]=s/p}return o}
-const EMA=(arr,p,acc=x=>x)=>{const o=Array(arr.length).fill(null);const k=2/(p+1);let e=null;for(let i=0;i<arr.length;i++){const v=acc(arr[i]);if(v==null){o[i]=null;continue;}if(e==null){if(i>=p-1){let s=0;for(let j=i-p+1;j<=i;j++)s+=acc(arr[j]);e=s/p;o[i]=e}}else{e=v*k+e*(1-k);o[i]=e}}return o}
-const STDEV=(arr,p,acc=x=>x)=>{const o=Array(arr.length).fill(null);const m=SMA(arr,p,acc);for(let i=0;i<arr.length;i++){if(i<p-1)continue;let s2=0;for(let j=i-p+1;j<=i;j++){const d=acc(arr[j])-m[i];s2+=d*d}o[i]=Math.sqrt(s2/p)}return o}
-function Bollinger(data, period=20, mult=2){
-  const mid = SMA(data, period, d=>d.close);
-  const sd  = STDEV(data, period, d=>d.close);
-  const up  = sd.map((s,i)=> s==null?null:mid[i]+mult*s);
-  const low = sd.map((s,i)=> s==null?null:mid[i]-mult*s);
-  return {mid, up, low};
-}
-function ATR(data, period=14){
-  const tr = Array(data.length).fill(null);
-  for(let i=1;i<data.length;i++){
-    const hl = data[i].high - data[i].low;
-    const hc = Math.abs(data[i].high - data[i-1].close);
-    const lc = Math.abs(data[i].low - data[i-1].close);
-    tr[i] = Math.max(hl, hc, lc);
-  }
-  const out = Array(data.length).fill(null);
-  let atr = null;
-  for(let i=0;i<data.length;i++){
-    if(i<period) continue;
-    if(atr==null){
-      let s=0; for(let j=i-period+1;j<=i;j++) s+=tr[j]||0;
-      atr = s/period; out[i]=atr;
-    }else{
-      atr = ((atr*(period-1)) + (tr[i]||0))/period; out[i]=atr;
-    }
-  }
-  return out;
-}
-function Supertrend(data, atrPeriod=10, mult=3){
-  const atr = ATR(data, atrPeriod);
-  const out = Array(data.length).fill(null);
-  let prevFU=null, prevFL=null, up=false;
-  for(let i=1;i<data.length;i++){
-    if(atr[i]==null)continue;
-    const hl2=(data[i].high+data[i].low)/2;
-    const bU=hl2+mult*atr[i], bL=hl2-mult*atr[i];
-    const fU=(prevFU==null)?bU:(bU<prevFU||data[i-1].close>prevFU)?bU:prevFU;
-    const fL=(prevFL==null)?bL:(bL>prevFL||data[i-1].close<prevFL)?bL:prevFL;
-    if(up && data[i].close<fL) up=false; else if(!up && data[i].close>fU) up=true;
-    out[i]= up? fL: fU; prevFU=fU; prevFL=fL;
-  }
-  return {line:out};
-}
-const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
-const nearByATR=(price,target,atr,th=0.4)=> Math.abs(price-target) <= (th*(atr||0));
+/* ---------- Mini DOM helpers ---------- */
+const $ = (id)=>document.getElementById(id);
+const els = {
+  status: $('status'), quote:$('quote'), symbol:$('symbol'), pairs:$('pairs'), tf:$('tf'),
+  indi:$('indicator'), applyIndi:$('applyIndi'),
+  lgMain:$('legend-main'), lgIndi:$('legend-indi'),
+  paneIndi:$('pane-indi')
+};
+function setStatus(txt){ els.status.textContent = txt; }
 
-/* ========= Chart factory ========= */
-const mkChart = (el)=> {
+/* ---------- Exchange info ---------- */
+let EXINFO=null, BY_QUOTE={}, VALID_SET=new Set();
+
+async function loadExchangeInfo(){
+  setStatus('Loading markets…');
+  const res = await fetch('https://api.binance.com/api/v3/exchangeInfo');
+  if(!res.ok) throw new Error('exchangeInfo fetch failed');
+  EXINFO = await res.json();
+  BY_QUOTE={}; VALID_SET=new Set();
+  (EXINFO.symbols||[]).filter(s=>s.status==='TRADING').forEach(s=>{
+    VALID_SET.add(s.symbol);
+    (BY_QUOTE[s.quoteAsset] ||= []).push(s.symbol);
+  });
+  Object.keys(BY_QUOTE).forEach(q=>BY_QUOTE[q].sort());
+  setStatus('Markets ready');
+}
+
+function populatePairs(){
+  const q = els.quote.value, list = BY_QUOTE[q] || [];
+  els.pairs.innerHTML='';
+  const frag=document.createDocumentFragment();
+  list.forEach(sym=>{ const opt=document.createElement('option'); opt.value=sym; frag.appendChild(opt); });
+  els.pairs.appendChild(frag);
+
+  if(list.length){
+    const cur = els.symbol.value.toUpperCase().trim();
+    if(!VALID_SET.has(cur) || !cur.endsWith(q)){
+      const preferred = list.find(s=>/^(BTC|ETH|BNB|SOL|XRP)/.test(s)) || list[0];
+      els.symbol.value = preferred;
+    }
+  }else{
+    els.symbol.value='';
+  }
+}
+
+/* ---------- Charts ---------- */
+const mkChart = (el, opts={})=>{
   const chart = LightweightCharts.createChart(el, {
     layout:{background:{type:'solid',color:'transparent'},textColor:'#cfe3ff'},
     grid:{vertLines:{color:'#0e1a28'},horzLines:{color:'#0e1a28'}},
-    rightPriceScale:{borderColor:'#223246'}, timeScale:{borderColor:'#223246'},
+    rightPriceScale:{borderColor:'#223246'},
+    timeScale:{borderColor:'#223246', secondsVisible:false, timeVisible:true},
     crosshair:{mode:0},
+    ...opts
   });
   const resize=()=>chart.applyOptions({width:el.clientWidth,height:el.clientHeight});
   const ro=new ResizeObserver(resize); ro.observe(el); resize();
   return chart;
 };
 
-/* ========= Single chart (reuses from your previous version) ========= */
-const single = (()=> {
-  const el = document.getElementById('c-single');
-  const chart = mkChart(el);
-  const sCandle = chart.addCandlestickSeries({upColor:'#16a34a',downColor:'#ef4444',borderUpColor:'#16a34a',borderDownColor:'#ef4444',wickUpColor:'#16a34a',wickDownColor:'#ef4444'});
-  const s9  = chart.addLineSeries({color:'#22d3ee', lineWidth:1.5});
-  const s20 = chart.addLineSeries({color:'#60a5fa', lineWidth:1.5});
-  const s50 = chart.addLineSeries({color:'#f59e0b', lineWidth:1.5});
-  const s200= chart.addLineSeries({color:'#a78bfa', lineWidth:1.5});
-  const sBBu= chart.addLineSeries({color:'#93c5fd', lineWidth:1, lineStyle:1});
-  const sBBm= chart.addLineSeries({color:'#93c5fd55', lineWidth:1, lineStyle:2});
-  const sBBl= chart.addLineSeries({color:'#93c5fd', lineWidth:1, lineStyle:1});
-  const sSUP= chart.addLineSeries({color:'#22c55e', lineWidth:1.5});
-  const lineSet=(series,data,arr)=> series.setData(data.map((d,i)=> arr[i]==null? null : ({time:d.time,value:arr[i]})).filter(Boolean));
+const cMain = mkChart($('c-main'));
+const sCandle = cMain.addCandlestickSeries({
+  upColor:'rgba(22,163,74,0.75)', downColor:'rgba(239,68,68,0.75)',
+  borderUpColor:'rgba(22,163,74,0.8)', borderDownColor:'rgba(239,68,68,0.8)',
+  wickUpColor:'rgba(22,163,74,0.8)', wickDownColor:'rgba(239,68,68,0.8)'
+});
+let overlaySeries=[]; // to clear later
 
-  let DATA=[], WS=null;
+const cIndi = mkChart($('c-indi'));
+let paneSeries=[];     // to clear later
 
-  function analyzeAndMarkEMA(data, P){
-    const markers=[];
-    const N=data.length; if(N<210){ sCandle.setMarkers(markers); return; }
-    const crossUp  = (i)=> (P.ema9[i-1] < P.ema20[i-1]) && (P.ema9[i] > P.ema20[i]);
-    const crossDn  = (i)=> (P.ema9[i-1] > P.ema20[i-1]) && (P.ema9[i] < P.ema20[i]);
-    const bullEng  = (i)=> (data[i].close>data[i].open) && (data[i-1].close<data[i-1].open) &&
-                          (data[i].close>=data[i-1].open) && (data[i].open<=data[i-1].close);
-    const bearEng  = (i)=> (data[i].close<data[i].open) && (data[i-1].close>data[i-1].open) &&
-                          (data[i].close<=data[i-1].open) && (data[i].open>=data[i-1].close);
+// Sync time ranges loosely
+let syncing=false;
+function linkCharts(a,b){
+  a.timeScale().subscribeVisibleTimeRangeChange(()=>{ if(syncing) return; syncing=true; b.timeScale().setVisibleLogicalRange(a.timeScale().getVisibleLogicalRange()); syncing=false; });
+  b.timeScale().subscribeVisibleTimeRangeChange(()=>{ if(syncing) return; syncing=true; a.timeScale().setVisibleLogicalRange(b.timeScale().getVisibleLogicalRange()); syncing=false; });
+}
+linkCharts(cMain, cIndi);
 
-    const score = (kind,i)=>{
-      const c = data[i].close, atr = P.atr[i]||P.atr[i-1]||0.00001;
-      let pts=0;
-      if(P.ema200[i]!=null){
-        const dist = Math.abs(c-P.ema200[i])/atr;
-        const ok = clamp(dist/2,0,1);
-        const side=(kind==='LONG'&&c>P.ema200[i])||(kind==='SHORT'&&c<P.ema200[i]);
-        pts += side?25*ok:0;
-      }
-      let best=Infinity;
-      if(P.ema20[i]!=null) best=Math.min(best, Math.abs(c-P.ema20[i])/(atr||1));
-      if(P.ema50[i]!=null) best=Math.min(best, Math.abs(c-P.ema50[i])/(atr||1));
-      if(isFinite(best)) pts += 25*clamp((0.6-best)/0.4,0,1);
-      if((kind==='LONG'&&crossUp(i))||(kind==='SHORT'&&crossDn(i))) pts+=20;
-      else if((kind==='LONG'&&(P.ema9[i-2]<P.ema20[i-2])&&(P.ema9[i-1]>P.ema20[i-1]))||
-              (kind==='SHORT'&&(P.ema9[i-2]>P.ema20[i-2])&&(P.ema9[i-1]<P.ema20[i-1]))) pts+=10;
-      if((kind==='LONG'&&bullEng(i))||(kind==='SHORT'&&bearEng(i))) pts+=15;
-      if(P.sup.line[i]!=null){
-        const align=(kind==='LONG'&&c>=P.sup.line[i])||(kind==='SHORT'&&c<=P.sup.line[i]);
-        if(align) pts+=10;
-      }
-      if(P.bb.mid[i]!=null){
-        const mid=P.bb.mid[i];
-        if((kind==='LONG'&&c>=mid)||(kind==='SHORT'&&c<=mid)) pts+=5;
-      }
-      return Math.round(clamp(pts,0,100));
-    };
-
-    for(let i=20;i<N;i++){
-      const c=data[i].close;
-      const pullback = nearByATR(c, P.ema50[i], P.atr[i], .35) || nearByATR(c, P.ema20[i], P.atr[i], .35);
-      const trendUp  = P.ema200[i]!=null && c>P.ema200[i];
-      const trendDn  = P.ema200[i]!=null && c<P.ema200[i];
-
-      if(trendUp && pullback && crossUp(i) && bullEng(i)){
-        const s = score('LONG',i);
-        sCandle.setMarkers([...(sCandle.markers||[]), { time:data[i].time, position:'belowBar', color:s>=70?'#10b981':'#22d3ee', shape:'arrowUp', text:`LONG ${s}` }]);
-      }
-      if(trendDn && pullback && crossDn(i) && bearEng(i)){
-        const s = score('SHORT',i);
-        sCandle.setMarkers([...(sCandle.markers||[]), { time:data[i].time, position:'aboveBar', color:s>=70?'#ef4444':'#fb7185', shape:'arrowDown', text:`SHORT ${s}` }]);
-      }
-    }
-  }
-
-  async function load(sym, tf){
-    if(WS){ WS.close(); WS=null; }
-    DATA = await fetchKlines(sym, tf, 800);
-    const P = {
-      ema9: EMA(DATA,9,d=>d.close), ema20: EMA(DATA,20,d=>d.close),
-      ema50: EMA(DATA,50,d=>d.close), ema200: EMA(DATA,200,d=>d.close),
-      bb: Bollinger(DATA,20,2), atr: ATR(DATA,14), sup: Supertrend(DATA,10,3)
-    };
-    sCandle.setData(DATA.map(d=>({time:d.time,open:d.open,high:d.high,low:d.low,close:d.close})));
-    s9.setData(DATA.map((d,i)=>P.ema9[i]==null?null:{time:d.time,value:P.ema9[i]}).filter(Boolean));
-    s20.setData(DATA.map((d,i)=>P.ema20[i]==null?null:{time:d.time,value:P.ema20[i]}).filter(Boolean));
-    s50.setData(DATA.map((d,i)=>P.ema50[i]==null?null:{time:d.time,value:P.ema50[i]}).filter(Boolean));
-    s200.setData(DATA.map((d,i)=>P.ema200[i]==null?null:{time:d.time,value:P.ema200[i]}).filter(Boolean));
-    sBBu.setData(DATA.map((d,i)=>P.bb.up[i]==null?null:{time:d.time,value:P.bb.up[i]}).filter(Boolean));
-    sBBm.setData(DATA.map((d,i)=>P.bb.mid[i]==null?null:{time:d.time,value:P.bb.mid[i]}).filter(Boolean));
-    sBBl.setData(DATA.map((d,i)=>P.bb.low[i]==null?null:{time:d.time,value:P.bb.low[i]}).filter(Boolean));
-    sSUP.setData(DATA.map((d,i)=>P.sup.line[i]==null?null:{time:d.time,value:P.sup.line[i]}).filter(Boolean));
-    analyzeAndMarkEMA(DATA, P);
-
-    const stream=`${sym.toLowerCase()}@kline_${tf}`;
-    WS=new WebSocket(`wss://stream.binance.com:9443/ws/${stream}`);
-    WS.onmessage=(e)=>{
-      const msg=JSON.parse(e.data); if(!msg.k) return;
-      const k=msg.k; const t=Math.floor(k.t/1000);
-      const last=DATA[DATA.length-1]?.time;
-      const bar={time:t,open:+k.o,high:+k.h,low:+k.l,close:+k.c,volume:+k.v};
-      if(last===t){ DATA[DATA.length-1]=bar; } else { DATA.push(bar); if(DATA.length>1200) DATA.shift(); }
-      const P2 = {
-        ema9:[...EMA(DATA,9,d=>d.close)], ema20:EMA(DATA,20,d=>d.close),
-        ema50:EMA(DATA,50,d=>d.close),    ema200:EMA(DATA,200,d=>d.close),
-        bb:Bollinger(DATA,20,2), atr:ATR(DATA,14), sup:Supertrend(DATA,10,3)
-      };
-      sCandle.update(bar);
-      // Only update last values for speed
-      const tLast = {time:t};
-      [ [s9,P2.ema9], [s20,P2.ema20], [s50,P2.ema50], [s200,P2.ema200],
-        [sBBu,P2.bb.up], [sBBm,P2.bb.mid], [sBBl,P2.bb.low], [sSUP,P2.sup.line] ].forEach(([s,a])=>{
-          const v=a.at(-1); if(v!=null) s.update({time:t,value:v});
-      });
-    };
-  }
-  return {load, el};
-})();
-
-/* ========= 3-Screen (4H, 1H, 15m) ========= */
-function makePanel(elId,{with9=false,with20=false,with50=false,with200=true}={}){
-  const chart = mkChart(document.getElementById(elId));
-  const sCandle = chart.addCandlestickSeries({upColor:'#16a34a',downColor:'#ef4444',borderUpColor:'#16a34a',borderDownColor:'#ef4444',wickUpColor:'#16a34a',wickDownColor:'#ef4444'});
-  const s9  = with9  ? chart.addLineSeries({color:'#22d3ee', lineWidth:1.5}) : null;
-  const s20 = with20 ? chart.addLineSeries({color:'#60a5fa', lineWidth:1.5}) : null;
-  const s50 = with50 ? chart.addLineSeries({color:'#f59e0b', lineWidth:1.5}) : null;
-  const s200= with200? chart.addLineSeries({color:'#a78bfa', lineWidth:1.5}) : null;
-  const setLine=(s,data,arr)=> s && s.setData(data.map((d,i)=>arr[i]==null?null:{time:d.time,value:arr[i]}).filter(Boolean));
-  return {chart,sCandle,s9,s20,s50,s200,setLine};
+/* ---------- Data loader ---------- */
+async function fetchKlines(symbol, interval, limit=600){
+  const url = `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=${interval}&limit=${limit}`;
+  const res = await fetch(url);
+  if(!res.ok) throw new Error('klines fetch failed');
+  const raw = await res.json();
+  return raw.map(k=>({
+    time: Math.floor(k[0]/1000),
+    open:+k[1], high:+k[2], low:+k[3], close:+k[4],
+    volume:+k[5]
+  }));
 }
 
-const tri = (()=>{
-  const statusDot = document.getElementById('triDot');
-  const statusTxt = document.getElementById('triText');
-  const r4h = document.getElementById('r4h');
-  const r1h = document.getElementById('r1h');
-  const r15 = document.getElementById('r15');
+let DATA=[], WS=null, CURR={sym:null, tf:null};
 
-  const p4h = makePanel('c-4h',{with200:true});
-  const p1h = makePanel('c-1h',{with50:true,with200:true});
-  const p15 = makePanel('c-15m',{with9:true,with20:true,with200:true});
-
-  let D4=[], D1=[], D15=[], WS4=null, WS1=null, WS15=null;
-
-  function setBadge(el, ok, txtOK, txtNG){
-    el.style.borderColor = ok ? '#1f7a4d' : '#60333a';
-    el.style.background = ok ? 'rgba(16,185,129,.12)' : 'rgba(239,68,68,.12)';
-    el.textContent = ok ? txtOK : txtNG;
-  }
-  function setTop(allOK, labels){
-    statusDot.style.background = allOK ? '#10b981' : '#f59e0b';
-    statusTxt.textContent = allOK ? 'Ready: Long Setup' : ('Waiting: ' + labels.filter(x=>!x.ok).map(x=>x.name).join(', '));
-  }
-
-  function lastOK_4h(P){
-    const i=P.ema200.length-1, c=D4.at(-1)?.close, ok = (P.ema200[i]!=null && c>P.ema200[i]);
-    setBadge(r4h, ok, '4H ✓ Above EMA-200', '4H ✗ Below EMA-200');
-    return ok;
-  }
-  function lastOK_1h(P){
-    const i=P.ema50.length-1, c=D1.at(-1)?.close, atr = P.atr[i]||P.atr[i-1]||0;
-    const ok = (P.ema50[i]!=null && nearByATR(c, P.ema50[i], atr, .45));
-    setBadge(r1h, ok, '1H ✓ Pullback near EMA-50', '1H ✗ Not near EMA-50');
-    return ok;
-  }
-  function lastOK_15(P){
-    const i=P.ema20.length-1;
-    if(i<1) { setBadge(r15,false,'','15m ✗ Not ready'); return false; }
-    const crossUp = (P.ema9[i-1] < P.ema20[i-1]) && (P.ema9[i] > P.ema20[i]);
-    const bullEng = (D15[i].close>D15[i].open) && (D15[i-1].close<D15[i-1].open) &&
-                    (D15[i].close>=D15[i-1].open) && (D15[i].open<=D15[i-1].close);
-    const ok = crossUp && bullEng;
-    setBadge(r15, ok, '15m ✓ 9↑20 + Bull Engulf', '15m ✗ Need 9↑20 + Engulf');
-    // Add arrow marker if ok
-    if(ok){
-      const m = [{ time:D15[i].time, position:'belowBar', color:'#10b981', shape:'arrowUp', text:'LONG (9>20 + Engulf)' }];
-      p15.sCandle.setMarkers(m);
-    }
-    return ok;
-  }
-
-  async function load(symbol){
-    // Close old sockets
-    [WS4,WS1,WS15].forEach(ws=>{ if(ws){ws.close();} });
-
-    // Fetch initial data
-    [D4,D1,D15] = await Promise.all([
-      fetchKlines(symbol,'4h',600),
-      fetchKlines(symbol,'1h',800),
-      fetchKlines(symbol,'15m',800),
-    ]);
-
-    // Compute & draw 4H
-    let P4 = { ema200: EMA(D4,200,d=>d.close) };
-    p4h.sCandle.setData(D4.map(d=>({time:d.time,open:d.open,high:d.high,low:d.low,close:d.close})));
-    p4h.setLine(p4h.s200, D4, P4.ema200);
-
-    // 1H
-    let P1 = { ema50: EMA(D1,50,d=>d.close), atr: ATR(D1,14) };
-    p1h.sCandle.setData(D1.map(d=>({time:d.time,open:d.open,high:d.high,low:d.low,close:d.close})));
-    p1h.setLine(p1h.s50, D1, P1.ema50);
-
-    // 15m
-    let P15 = { ema9: EMA(D15,9,d=>d.close), ema20: EMA(D15,20,d=>d.close) };
-    p15.sCandle.setData(D15.map(d=>({time:d.time,open:d.open,high:d.high,low:d.low,close:d.close})));
-    p15.setLine(p15.s9,  D15, P15.ema9);
-    p15.setLine(p15.s20, D15, P15.ema20);
-
-    // Evaluate tri status
-    const flags = [
-      {name:'4H', ok:lastOK_4h({ema200:P4.ema200})},
-      {name:'1H', ok:lastOK_1h({ema50:P1.ema50, atr:P1.atr})},
-      {name:'15m', ok:lastOK_15({ema9:P15.ema9, ema20:P15.ema20})},
-    ];
-    setTop(flags.every(f=>f.ok), flags);
-
-    // Live sockets
-    const sym = symbol.toLowerCase();
-    WS4  = new WebSocket(`wss://stream.binance.com:9443/ws/${sym}@kline_4h`);
-    WS1  = new WebSocket(`wss://stream.binance.com:9443/ws/${sym}@kline_1h`);
-    WS15 = new WebSocket(`wss://stream.binance.com:9443/ws/${sym}@kline_15m`);
-
-    WS4.onmessage=(e)=>{ const k=JSON.parse(e.data).k; if(!k) return;
-      const t=Math.floor(k.t/1000), bar={time:t,open:+k.o,high:+k.h,low:+k.l,close:+k.c};
-      const last=D4.at(-1)?.time; if(last===t) D4[D4.length-1]=bar; else D4.push(bar);
-      P4 = { ema200: EMA(D4,200,d=>d.close) };
-      p4h.sCandle.update(bar);
-      const v=P4.ema200.at(-1); if(v!=null) p4h.s200.update({time:t,value:v});
-      setTop(
-        lastOK_4h({ema200:P4.ema200}) && lastOK_1h({ema50:P1.ema50, atr:P1.atr}) && lastOK_15({ema9:P15.ema9, ema20:P15.ema20}),
-        [{name:'4H',ok:lastOK_4h({ema200:P4.ema200})},{name:'1H',ok:lastOK_1h({ema50:P1.ema50,atr:P1.atr})},{name:'15m',ok:lastOK_15({ema9:P15.ema9,ema20:P15.ema20})}]
-      );
-    };
-    WS1.onmessage=(e)=>{ const k=JSON.parse(e.data).k; if(!k) return;
-      const t=Math.floor(k.t/1000), bar={time:t,open:+k.o,high:+k.h,low:+k.l,close:+k.c};
-      const last=D1.at(-1)?.time; if(last===t) D1[D1.length-1]=bar; else D1.push(bar);
-      P1 = { ema50: EMA(D1,50,d=>d.close), atr: ATR(D1,14) };
-      p1h.sCandle.update(bar);
-      const v=P1.ema50.at(-1); if(v!=null) p1h.s50.update({time:t,value:v});
-      setTop(
-        lastOK_4h({ema200:P4.ema200}) && lastOK_1h({ema50:P1.ema50, atr:P1.atr}) && lastOK_15({ema9:P15.ema9, ema20:P15.ema20}),
-        [{name:'4H',ok:lastOK_4h({ema200:P4.ema200})},{name:'1H',ok:lastOK_1h({ema50:P1.ema50,atr:P1.atr})},{name:'15m',ok:lastOK_15({ema9:P15.ema9,ema20:P15.ema20})}]
-      );
-    };
-    WS15.onmessage=(e)=>{ const k=JSON.parse(e.data).k; if(!k) return;
-      const t=Math.floor(k.t/1000), bar={time:t,open:+k.o,high:+k.h,low:+k.l,close:+k.c};
-      const last=D15.at(-1)?.time; if(last===t) D15[D15.length-1]=bar; else D15.push(bar);
-      P15 = { ema9: EMA(D15,9,d=>d.close), ema20: EMA(D15,20,d=>d.close) };
-      p15.sCandle.update(bar);
-      const v9=P15.ema9.at(-1), v20=P15.ema20.at(-1);
-      if(v9!=null)  p15.s9.update({time:t,value:v9});
-      if(v20!=null) p15.s20.update({time:t,value:v20});
-      setTop(
-        lastOK_4h({ema200:P4.ema200}) && lastOK_1h({ema50:P1.ema50, atr:P1.atr}) && lastOK_15({ema9:P15.ema9, ema20:P15.ema20}),
-        [{name:'4H',ok:lastOK_4h({ema200:P4.ema200})},{name:'1H',ok:lastOK_1h({ema50:P1.ema50,atr:P1.atr})},{name:'15m',ok:lastOK_15({ema9:P15.ema9,ema20:P15.ema20})}]
-      );
-    };
-  }
-
-  return {load};
-})();
-
-/* ========= View switching & loading ========= */
-const els = {
-  symbol: document.getElementById('symbol'),
-  tf: document.getElementById('tf'),
-  wrap: document.getElementById('wrap'),
-  singleCard: document.getElementById('singleCard'),
-  triCard: document.getElementById('triCard'),
-  viewSeg: document.getElementById('viewSeg'),
-};
-let viewMode = 'tri'; // default per your request
-
-function applyView(){
-  if(viewMode==='single'){
-    els.wrap.style.gridTemplateRows = '1fr';
-    els.singleCard.style.display='block';
-    els.triCard.style.display='none';
-  }else{
-    // Make sure 3-screen fits height (single row)
-    els.wrap.style.gridTemplateRows = '1fr';
-    els.singleCard.style.display='none';
-    els.triCard.style.display='block';
-  }
-}
+function closeWS(){ try{ if(WS){ WS.onmessage=null; WS.close(); } }catch(e){} WS=null; }
 
 async function loadAll(){
-  const sym=els.symbol.value.trim().toUpperCase();
-  if(!sym.endsWith('USDT')){ alert('Use USDT pairs like BTCUSDT'); return; }
-  applyView();
-  if(viewMode==='single'){
-    await single.load(sym, document.getElementById('tf').value);
-  }else{
-    await tri.load(sym);
+  try{
+    let sym = els.symbol.value.trim().toUpperCase();
+    const tf  = els.tf.value, q = els.quote.value;
+    if(sym && !sym.endsWith(q)) sym = sym.replace(/(USDT|FDUSD|USDC|BTC|ETH|BNB|TRY)$/,'') + q;
+    if(!VALID_SET.has(sym)){
+      const base = sym.replace(/(USDT|FDUSD|USDC|BTC|ETH|BNB|TRY)$/,'');
+      const guess = (EXINFO.symbols||[]).find(s=>s.status==='TRADING' && s.baseAsset===base);
+      if(guess){ sym=guess.symbol; els.quote.value=guess.quoteAsset; populatePairs(); }
+      else { alert('Symbol not found on Binance (TRADING). Choose from list.'); return; }
+    }
+    els.symbol.value=sym;
+    setStatus(`Loading ${sym} • ${tf} …`);
+
+    closeWS();
+    DATA = await fetchKlines(sym, tf, 600);
+    sCandle.setData(DATA.map(d=>({time:d.time,open:d.open,high:d.high,low:d.low,close:d.close})));
+    CURR={sym, tf};
+
+    // re-apply indicator on dataset change
+    applyIndicator();
+
+    // WS stream
+    const stream = `${sym.toLowerCase()}@kline_${tf}`;
+    WS = new WebSocket(`wss://stream.binance.com:9443/ws/${stream}`);
+    WS.onopen = ()=> setStatus(`Live: ${sym} • ${tf}`);
+    WS.onclose = ()=> setStatus(`Disconnected • ${sym} • ${tf}`);
+    WS.onerror = ()=> setStatus(`Socket error • ${sym} • ${tf}`);
+    WS.onmessage=(e)=>{
+      try{
+        const msg=JSON.parse(e.data); if(!msg.k) return;
+        const k=msg.k; const t=Math.floor(k.t/1000);
+        const bar={time:t,open:+k.o,high:+k.h,low:+k.l,close:+k.c,volume:+k.v};
+        const last=DATA[DATA.length-1]?.time;
+        if(last===t){ DATA[DATA.length-1]=bar; } else { DATA.push(bar); if(DATA.length>1200) DATA.shift(); }
+        sCandle.update(bar);
+        // live update indicator (lightweight approach)
+        if(activeIndi) applyIndicator(true);
+      }catch(err){ console.error(err); }
+    };
+  }catch(err){
+    console.error(err);
+    setStatus('Error loading chart');
+    alert('Failed to load chart. Try another symbol/TF or check network.');
   }
 }
 
-/* Events */
-document.getElementById('reload').addEventListener('click', loadAll);
-els.viewSeg.querySelectorAll('button').forEach(b=>{
-  b.addEventListener('click', ()=>{
-    els.viewSeg.querySelectorAll('button').forEach(x=>x.classList.remove('active'));
-    b.classList.add('active');
-    viewMode = b.dataset.view;
-    loadAll();
+/* ---------- Math & utils ---------- */
+const nth = (arr,i)=> (i<0? undefined : arr[i]);
+const pluck = (arr,k)=>arr.map(o=>o[k]);
+
+function SMA(src, n){
+  let out=[], sum=0;
+  for(let i=0;i<src.length;i++){
+    sum += src[i];
+    if(i>=n) sum -= src[i-n];
+    out[i] = i>=n-1 ? sum/n : undefined;
+  }
+  return out;
+}
+function EMA(src, n){
+  const k = 2/(n+1);
+  let out=[], prev;
+  for(let i=0;i<src.length;i++){
+    const v=src[i];
+    if(v==null){ out[i]=undefined; continue; }
+    prev = (prev==null)? v : prev + k*(v-prev);
+    out[i]=prev;
+  }
+  return out;
+}
+function RMA(src, n){ // Wilder
+  let out=[], prev;
+  const k = 1/n;
+  for(let i=0;i<src.length;i++){
+    const v=src[i];
+    if(v==null){ out[i]=undefined; continue; }
+    prev = (prev==null)? v : (prev*(n-1)+v)/n;
+    out[i]=prev;
+  }
+  return out;
+}
+function WMA(src,n){
+  let out=[], w=n*(n+1)/2, sum=0, wsum=0;
+  for(let i=0;i<src.length;i++){
+    sum=0; wsum=0;
+    for(let j=0;j<n;j++){
+      const v=src[i-j]; if(v==null) { sum=null; break; }
+      sum += v*(n-j); wsum += (n-j);
+    }
+    out[i] = (sum==null || i<n-1)? undefined : sum/wsum;
+  }
+  return out;
+}
+function HMA(src,n){
+  const wma1=WMA(src, Math.floor(n/2));
+  const wma2=WMA(src, n);
+  const diff=src.map((_,i)=> (wma1[i]!=null && wma2[i]!=null)? 2*wma1[i]-wma2[i]:undefined);
+  return WMA(diff, Math.round(Math.sqrt(n)));
+}
+function KAMA(src, n=10, fast=2, slow=30){
+  const fastSC=2/(fast+1), slowSC=2/(slow+1);
+  let out=[], prev=src[0];
+  for(let i=0;i<src.length;i++){
+    if(i<n){ out[i]=undefined; continue; }
+    const change=Math.abs(src[i]-src[i-n]);
+    let volatility=0;
+    for(let j=1;j<=n;j++) volatility += Math.abs(src[i-j+1]-src[i-j]);
+    const ER = volatility===0 ? 0 : (change/volatility);
+    const SC = Math.pow(ER*(fastSC-slowSC)+slowSC,2);
+    prev = prev + SC*(src[i]-prev);
+    out[i]=prev;
+  }
+  return out;
+}
+function STD(src,n){
+  const ma=SMA(src,n); let out=[];
+  for(let i=0;i<src.length;i++){
+    if(i<n-1){ out[i]=undefined; continue; }
+    let s=0; for(let j=i-n+1;j<=i;j++) s+=(src[j]-ma[i])**2;
+    out[i]=Math.sqrt(s/n);
+  }
+  return out;
+}
+function Highest(src,n){ let out=[]; for(let i=0;i<src.length;i++){ if(i<n-1){out[i]=undefined;continue;} let h=-Infinity; for(let j=i-n+1;j<=i;j++) h=Math.max(h,src[j]); out[i]=h; } return out; }
+function Lowest(src,n){ let out=[]; for(let i=0;i<src.length;i++){ if(i<n-1){out[i]=undefined;continue;} let l=Infinity; for(let j=i-n+1;j<=i;j++) l=Math.min(l,src[j]); out[i]=l; } return out; }
+
+function TR(bars,i){
+  if(i===0) return bars[0].high - bars[0].low;
+  const h=bars[i].high, l=bars[i].low, pc=bars[i-1].close;
+  return Math.max(h-l, Math.abs(h-pc), Math.abs(l-pc));
+}
+function ATR(bars,n){
+  let trs=bars.map((_,i)=>TR(bars,i));
+  return RMA(trs,n);
+}
+
+/* ---------- Indicator computations ---------- */
+function lineFrom(arr){ // map to {time,value}
+  let out=[]; for(let i=0;i<DATA.length;i++){ const v=arr[i]; if(v!=null) out.push({time:DATA[i].time, value:v}); }
+  return out;
+}
+function dualFrom(a,b){ // pair lines
+  return [ lineFrom(a), lineFrom(b) ];
+}
+
+/* Overlay indicators */
+const computeOverlay = {
+  'sma': (p)=> ({ lines:[ SMA(pluck(DATA,'close'), p.n) ], name:`SMA(${p.n})` }),
+  'ema': (p)=> ({ lines:[ EMA(pluck(DATA,'close'), p.n) ], name:`EMA(${p.n})` }),
+  'wma': (p)=> ({ lines:[ WMA(pluck(DATA,'close'), p.n) ], name:`WMA(${p.n})` }),
+  'rma': (p)=> ({ lines:[ RMA(pluck(DATA,'close'), p.n) ], name:`RMA(${p.n})` }),
+  'vwma': (p)=> {
+    const c=pluck(DATA,'close'), v=pluck(DATA,'volume');
+    let pv=c.map((x,i)=>x*v[i]), vw=[];
+    let sumPV=0,sumV=0;
+    for(let i=0;i<c.length;i++){
+      sumPV += pv[i]; sumV += v[i];
+      if(i>=p.n){ sumPV -= pv[i-p.n]; sumV -= v[i-p.n]; }
+      vw[i] = i>=p.n-1 && sumV>0 ? sumPV/sumV : undefined;
+    }
+    return { lines:[vw], name:`VWMA(${p.n})` };
+  },
+  'hma': (p)=> ({ lines:[ HMA(pluck(DATA,'close'), p.n) ], name:`HMA(${p.n})` }),
+  'kama': (p)=> ({ lines:[ KAMA(pluck(DATA,'close'), p.n) ], name:`KAMA(${p.n})` }),
+  'dema': (p)=> {
+    const c=pluck(DATA,'close'); const e1=EMA(c,p.n); const e2=EMA(e1,p.n);
+    const de=c.map((_,i)=> (e1[i]!=null && e2[i]!=null)? 2*e1[i]-e2[i] : undefined);
+    return { lines:[de], name:`DEMA(${p.n})` };
+  },
+  'tema': (p)=> {
+    const c=pluck(DATA,'close'); const e1=EMA(c,p.n); const e2=EMA(e1,p.n); const e3=EMA(e2,p.n);
+    const te=c.map((_,i)=> (e1[i]&&e2[i]&&e3[i])? 3*e1[i]-3*e2[i]+e3[i] : undefined);
+    return { lines:[te], name:`TEMA(${p.n})` };
+  },
+  'bb': (p)=>{ // n,k
+    const c=pluck(DATA,'close'), ma=SMA(c,p.n), sd=STD(c,p.n);
+    const upper=c.map((_,i)=> ma[i]!=null && sd[i]!=null ? ma[i]+p.k*sd[i] : undefined);
+    const lower=c.map((_,i)=> ma[i]!=null && sd[i]!=null ? ma[i]-p.k*sd[i] : undefined);
+    return { lines:[ma, upper, lower], bands:true, name:`BB(${p.n},${p.k})` };
+  },
+  'kc': (p)=>{ // n,k
+    const c=pluck(DATA,'close'), ema=EMA(c,p.n), atr=ATR(DATA,p.n);
+    const upper=c.map((_,i)=> (ema[i]!=null && atr[i]!=null)? ema[i]+p.k*atr[i] : undefined);
+    const lower=c.map((_,i)=> (ema[i]!=null && atr[i]!=null)? ema[i]-p.k*atr[i] : undefined);
+    return { lines:[ema, upper, lower], bands:true, name:`Keltner(${p.n},${p.k})` };
+  },
+  'donchian': (p)=>{
+    const up=Highest(pluck(DATA,'high'),p.n), lo=Lowest(pluck(DATA,'low'),p.n);
+    const mid=up.map((u,i)=> (u!=null && lo[i]!=null)? (u+lo[i])/2 : undefined);
+    return { lines:[up, lo, mid], name:`Donchian(${p.n})` };
+  },
+  'supertrend': (p)=>{ // n, factor
+    const atr=ATR(DATA,p.n);
+    const hl2=DATA.map(b=>(b.high+b.low)/2);
+    let upper=[],lower=[],dir=[],st=[];
+    for(let i=0;i<DATA.length;i++){
+      if(atr[i]==null){ upper[i]=lower[i]=st[i]=undefined; continue; }
+      upper[i]=hl2[i] + p.f*atr[i];
+      lower[i]=hl2[i] - p.f*atr[i];
+      if(i===0){ dir[i]=1; st[i]=lower[i]; continue; }
+      // final bands
+      const prevSt=st[i-1], prevDir=dir[i-1];
+      let fu = Math.min(upper[i], (prevDir===1? upper[i-1]: Infinity));
+      let fl = Math.max(lower[i], (prevDir===-1? lower[i-1]: -Infinity));
+      // direction switch
+      const c=DATA[i].close, pc=DATA[i-1].close;
+      dir[i] = (prevDir===1)
+        ? (c<fu ? -1 : 1)
+        : (c>fl ? 1 : -1);
+      st[i] = dir[i]===1 ? fl : fu;
+    }
+    return { lines:[st], colorByTrend:dir, name:`Supertrend(${p.n},${p.f})` };
+  },
+  'psar': (p)=>{ // step, max
+    let af=p.step, max=p.max, ep=null, sar=null, bull=true;
+    let out=[], dir=[];
+    for(let i=0;i<DATA.length;i++){
+      if(i<2){ out[i]=undefined; dir[i]=1; continue; }
+      const h=DATA[i-1].high,l=DATA[i-1].low;
+      if(sar==null){ sar=DATA[i-1].low; ep=DATA[i-1].high; bull=true; }
+      sar = sar + af*(ep - sar);
+      // bounds
+      sar = bull ? Math.min(sar, DATA[i-1].low, DATA[i-2].low) : Math.max(sar, DATA[i-1].high, DATA[i-2].high);
+      const rev = bull ? (DATA[i].low < sar) : (DATA[i].high > sar);
+      if(rev){
+        bull = !bull;
+        sar = bull ? Math.min(DATA[i-1].low, DATA[i-2].low) : Math.max(DATA[i-1].high, DATA[i-2].high);
+        ep = bull ? DATA[i].high : DATA[i].low;
+        af = p.step;
+      }else{
+        if(bull && DATA[i].high > ep){ ep=DATA[i].high; af=Math.min(af+p.step, max); }
+        if(!bull && DATA[i].low < ep){ ep=DATA[i].low;  af=Math.min(af+p.step, max); }
+      }
+      out[i]=sar; dir[i]=bull?1:-1;
+    }
+    return { dots:out, colorByTrend:dir, name:`PSAR(${p.step},${p.max})` };
+  },
+  'ichimoku': (p)=>{ // 9,26,52
+    const H=pluck(DATA,'high'), L=pluck(DATA,'low'), C=pluck(DATA,'close');
+    const conv = H.map((_,i)=>{ const hh=Highest(H,p.conv)[i], ll=Lowest(L,p.conv)[i]; return (hh!=null && ll!=null)? (hh+ll)/2:undefined; });
+    const base = H.map((_,i)=>{ const hh=Highest(H,p.base)[i], ll=Lowest(L,p.base)[i]; return (hh!=null && ll!=null)? (hh+ll)/2:undefined; });
+    const spanA = conv.map((v,i)=> (v!=null && base[i]!=null)? (v+base[i])/2:undefined);
+    const spanB = H.map((_,i)=>{ const hh=Highest(H,p.spanB)[i], ll=Lowest(L,p.spanB)[i]; return (hh!=null && ll!=null)? (hh+ll)/2:undefined; });
+    // shift +26 forward for spans; chikou lag -26
+    const shift=26;
+    const fwdA=[], fwdB=[], lag=[];
+    for(let i=0;i<DATA.length;i++){
+      if(spanA[i]!=null){ const t = DATA[i].time + shift* (DATA[1]?.time - DATA[0]?.time || 60); fwdA.push({time:t, value:spanA[i]}); }
+      if(spanB[i]!=null){ const t = DATA[i].time + shift* (DATA[1]?.time - DATA[0]?.time || 60); fwdB.push({time:t, value:spanB[i]}); }
+      if(C[i]!=null && DATA[i-shift]) lag.push({time:DATA[i-shift].time, value:C[i]});
+    }
+    return { ichimoku:{conv:lineFrom(conv), base:lineFrom(base), spanA:fwdA, spanB:fwdB, lag}, name:'Ichimoku (9/26/52)' };
+  },
+  'vwap': ()=>{ // reset each date
+    const tp = DATA.map(b=>(b.high+b.low+b.close)/3);
+    const v  = pluck(DATA,'volume');
+    let cumPV=0,cumV=0, out=[];
+    const day = (t)=> new Date(t*1000).toDateString();
+    let curDay = DATA[0]? day(DATA[0].time):null;
+    for(let i=0;i<DATA.length;i++){
+      const d=day(DATA[i].time);
+      if(d!==curDay){ cumPV=0; cumV=0; curDay=d; }
+      cumPV += tp[i]*v[i]; cumV += v[i];
+      out[i] = cumV>0 ? cumPV/cumV : undefined;
+    }
+    return { lines:[out], name:'VWAP' };
+  },
+  'emaRibbon': (p)=>{ // list of lengths
+    const c=pluck(DATA,'close'); const lens=p.lens;
+    const lines = lens.map(n=>EMA(c,n));
+    return { lines, name:`EMA Ribbon (${lens.join('/')})` };
+  },
+  'fractals': (p)=>{
+    const left=p.left, right=p.left;
+    let up=[], dn=[];
+    for(let i=0;i<DATA.length;i++){
+      if(i<left || i>DATA.length-right-1){ up[i]=dn[i]=undefined; continue; }
+      let isUp=true, isDn=true;
+      for(let k=1;k<=left;k++){
+        if(!(DATA[i].high>DATA[i-k].high && DATA[i].high>=DATA[i+k].high)) isUp=false;
+        if(!(DATA[i].low<DATA[i-k].low && DATA[i].low<=DATA[i+k].low)) isDn=false;
+      }
+      up[i]=isUp?DATA[i].high:undefined;
+      dn[i]=isDn?DATA[i].low:undefined;
+    }
+    return { fractals:{up, dn}, name:'Fractals' };
+  }
+};
+
+/* Pane indicators */
+const computePane = {
+  'rsi': (p)=>{
+    const c=pluck(DATA,'close'); let up=[undefined], dn=[undefined];
+    for(let i=1;i<c.length;i++){
+      const ch=c[i]-c[i-1];
+      up[i]=Math.max(ch,0); dn[i]=Math.max(-ch,0);
+    }
+    const rs = RMA(up,p.n).map((u,i)=> u!=null && RMA(dn,p.n)[i]!=null ? u/ RMA(dn,p.n)[i] : undefined);
+    const rsi = rs.map(x=> x==null? undefined : (100 - 100/(1+x)));
+    return { lines:[rsi], bands:[30,70], name:`RSI(${p.n})` };
+  },
+  'stoch': (p)=>{
+    const H=Highest(pluck(DATA,'high'),p.k), L=Lowest(pluck(DATA,'low'),p.k), C=pluck(DATA,'close');
+    const K = C.map((c,i)=> (H[i]!=null && L[i]!=null && H[i]!==L[i])? 100*(c-L[i])/(H[i]-L[i]):undefined);
+    const D = SMA(K,p.d);
+    return { lines:[K,D], bands:[20,80], name:`Stoch(${p.k},${p.smooth},${p.d})` };
+  },
+  'stochrsi': (p)=>{
+    // RSI then stochastic of RSI
+    const base = computePane.rsi({n:p.n}).lines[0];
+    const hi = Highest(base,p.n), lo=Lowest(base,p.n);
+    const K = base.map((v,i)=> (hi[i]!=null && lo[i]!=null && hi[i]!==lo[i])? 100*(v-lo[i])/(hi[i]-lo[i]):undefined);
+    const D = SMA(K,3);
+    return { lines:[K,D], bands:[20,80], name:`Stoch RSI(${p.n})` };
+  },
+  'macd': (p)=>{
+    const c=pluck(DATA,'close');
+    const fast=EMA(c,p.fast), slow=EMA(c,p.slow);
+    const macd = c.map((_,i)=> (fast[i]!=null && slow[i]!=null)? fast[i]-slow[i]:undefined);
+    const signal = EMA(macd,p.signal);
+    const hist = macd.map((v,i)=> (v!=null && signal[i]!=null)? v - signal[i] : undefined);
+    return { macd:{macd,signal,hist}, name:`MACD(${p.fast},${p.slow},${p.signal})` };
+  },
+  'cci': (p)=>{
+    const tp=DATA.map(b=>(b.high+b.low+b.close)/3);
+    const ma=SMA(tp,p.n);
+    let dev=[]; for(let i=0;i<tp.length;i++){
+      if(i<p.n-1){dev[i]=undefined;continue;}
+      let s=0; for(let j=i-p.n+1;j<=i;j++) s+=Math.abs(tp[j]-ma[i]);
+      dev[i]=s/p.n;
+    }
+    const cci=tp.map((v,i)=> (ma[i]!=null && dev[i]>0)? (v - ma[i])/(0.015*dev[i]):undefined);
+    return { lines:[cci], bands:[-100,100], name:`CCI(${p.n})` };
+  },
+  'adx': (p)=>{
+    let plusDM=[], minusDM=[], trs=[];
+    for(let i=0;i<DATA.length;i++){
+      if(i===0){ plusDM[i]=minusDM[i]=trs[i]=undefined; continue; }
+      const upMove = DATA[i].high - DATA[i-1].high;
+      const downMove = DATA[i-1].low - DATA[i].low;
+      plusDM[i] = (upMove>downMove && upMove>0)? upMove:0;
+      minusDM[i]= (downMove>upMove && downMove>0)? downMove:0;
+      trs[i]=TR(DATA,i);
+    }
+    const atr=RMA(trs.slice(1),p.n); // align
+    const pDI=[], mDI=[];
+    for(let i=1;i<DATA.length;i++){
+      const pdm=RMA(plusDM.slice(1),p.n)[i-1], mdm=RMA(minusDM.slice(1),p.n)[i-1];
+      const a=atr[i-1];
+      pDI[i] = (a>0 && pdm!=null)? 100*(pdm/a):undefined;
+      mDI[i] = (a>0 && mdm!=null)? 100*(mdm/a):undefined;
+    }
+    const dx=pDI.map((v,i)=> (v!=null && mDI[i]!=null && (v+mDI[i])>0)? 100*Math.abs(v-mDI[i])/(v+mDI[i]):undefined);
+    const adx = RMA(dx.filter((_,i)=>i>0),p.n); // rough align
+    // fix alignment to DATA length
+    let adxFull=Array(DATA.length).fill(undefined);
+    for(let i=1;i<DATA.length;i++) adxFull[i]=adx[i-1];
+    return { lines:[pDI,mDI,adxFull], bands:[20,25], name:`ADX(${p.n})` };
+  },
+  'atr': (p)=> ({ lines:[ ATR(DATA,p.n) ], name:`ATR(${p.n})` }),
+  'obv': ()=>{
+    const c=pluck(DATA,'close'), v=pluck(DATA,'volume'); let obv=[];
+    for(let i=0;i<c.length;i++){
+      if(i===0){ obv[i]=v[i]; continue; }
+      obv[i] = c[i]>c[i-1]? obv[i-1]+v[i] : c[i]<c[i-1]? obv[i-1]-v[i] : obv[i-1];
+    }
+    return { lines:[obv], name:'OBV' };
+  },
+  'mfi': (p)=>{
+    const tp=DATA.map(b=>(b.high+b.low+b.close)/3), v=pluck(DATA,'volume');
+    let pos=Array(DATA.length).fill(0), neg=Array(DATA.length).fill(0);
+    for(let i=1;i<tp.length;i++){
+      const mf = tp[i]*v[i];
+      if(tp[i]>tp[i-1]) pos[i]=mf; else if(tp[i]<tp[i-1]) neg[i]=mf;
+    }
+    // rolling sums
+    let mfi=[], sp=0,sn=0;
+    for(let i=0;i<tp.length;i++){
+      sp+=pos[i]; sn+=neg[i];
+      if(i>=p.n){ sp-=pos[i-p.n]; sn-=neg[i-p.n]; }
+      const mr = sn===0? 100 : 100 - 100/(1+ (sp/sn));
+      mfi[i] = i>=p.n-1? mr : undefined;
+    }
+    return { lines:[mfi], bands:[20,80], name:`MFI(${p.n})` };
+  },
+  'cmf': (p)=>{
+    const mfm = DATA.map(b=> (b.high===b.low)? 0 : ((b.close-b.low)-(b.high-b.close))/(b.high-b.low));
+    const mfv = mfm.map((x,i)=> x*DATA[i].volume);
+    let out=[], sumV=0,sumMFV=0;
+    for(let i=0;i<DATA.length;i++){
+      sumV += DATA[i].volume; sumMFV += mfv[i];
+      if(i>=p.n){ sumV -= DATA[i-p.n].volume; sumMFV -= mfv[i-p.n]; }
+      out[i] = i>=p.n-1? (sumV!==0? sumMFV/sumV : undefined) : undefined;
+    }
+    return { lines:[out], bands:[-0.2,0.2], name:`CMF(${p.n})` };
+  },
+  'aroon': (p)=>{
+    const H=pluck(DATA,'high'), L=pluck(DATA,'low');
+    let up=[], dn=[];
+    for(let i=0;i<DATA.length;i++){
+      if(i<p.n-1){ up[i]=dn[i]=undefined; continue; }
+      let hh=-Infinity, li=0, ll=Infinity, hi=0;
+      for(let j=i-p.n+1;j<=i;j++){
+        if(H[j]>hh){ hh=H[j]; hi=j; }
+        if(L[j]<ll){ ll=L[j]; li=j; }
+      }
+      up[i]=100*(p.n - (i-hi))/p.n;
+      dn[i]=100*(p.n - (i-li))/p.n;
+    }
+    return { lines:[up,dn], name:`Aroon(${p.n})` };
+  },
+  'roc': (p)=>{
+    const c=pluck(DATA,'close'); let out=[];
+    for(let i=0;i<c.length;i++) out[i] = (i>=p.n && c[i-p.n]!==0)? 100*(c[i]-c[i-p.n])/c[i-p.n] : undefined;
+    return { lines:[out], name:`ROC%(${p.n})` };
+  },
+  'willr': (p)=>{
+    const H=Highest(pluck(DATA,'high'),p.n), L=Lowest(pluck(DATA,'low'),p.n), C=pluck(DATA,'close');
+    const wr = C.map((c,i)=> (H[i]!=null && L[i]!=null && H[i]!==L[i])? -100*(H[i]-c)/(H[i]-L[i]):undefined);
+    return { lines:[wr], bands:[-80,-20], name:`Williams %R(${p.n})` };
+  },
+  'trix': (p)=>{
+    const c=pluck(DATA,'close');
+    const e1=EMA(c,p.n), e2=EMA(e1,p.n), e3=EMA(e2,p.n);
+    let trix=[undefined];
+    for(let i=1;i<c.length;i++){ trix[i] = (e3[i-1]? ((e3[i]-e3[i-1])/e3[i-1])*100 : undefined); }
+    return { lines:[trix], name:`TRIX%(${p.n})` };
+  },
+  'mom': (p)=>{
+    const c=pluck(DATA,'close'); let out=[];
+    for(let i=0;i<c.length;i++) out[i] = (i>=p.n && c[i-p.n]!==0)? 100*(c[i]/c[i-p.n]-1):undefined;
+    return { lines:[out], name:`Momentum%(${p.n})` };
+  },
+  'ppo': (p)=>{
+    const c=pluck(DATA,'close'); const fast=EMA(c,p.fast), slow=EMA(c,p.slow);
+    const ppo = c.map((_,i)=> (fast[i]!=null && slow[i])? 100*(fast[i]-slow[i])/slow[i] : undefined);
+    const signal = EMA(ppo,p.signal);
+    const hist = ppo.map((v,i)=> (v!=null && signal[i]!=null)? v-signal[i] : undefined);
+    return { macd:{macd:ppo, signal, hist}, name:`PPO(${p.fast},${p.slow},${p.signal})` };
+  },
+  'percentb': (p)=>{
+    const c=pluck(DATA,'close'), ma=SMA(c,p.n), sd=STD(c,p.n);
+    const up=c.map((_,i)=> (ma[i]!=null && sd[i]!=null)? ma[i]+p.k*sd[i]:undefined);
+    const lo=c.map((_,i)=> (ma[i]!=null && sd[i]!=null)? ma[i]-p.k*sd[i]:undefined);
+    const pb=c.map((v,i)=> (up[i]!=null && lo[i]!=null && up[i]!==lo[i])? (v-lo[i])/(up[i]-lo[i]) : undefined);
+    return { lines:[pb], name:`%B(${p.n},${p.k})` };
+  },
+  'uo': (p)=>{
+    let bp=[], tr=[];
+    for(let i=0;i<DATA.length;i++){
+      const pc = i>0 ? DATA[i-1].close : DATA[i].open;
+      bp[i]=DATA[i].close - Math.min(DATA[i].low, pc);
+      tr[i]=Math.max(DATA[i].high, pc) - Math.min(DATA[i].low, pc);
+    }
+    function sumN(a,n,i){ let s=0; for(let j=i-n+1;j<=i;j++) s+= (j>=0? a[j]:0); return s; }
+    let out=[];
+    for(let i=0;i<DATA.length;i++){
+      if(i< p.long-1){ out[i]=undefined; continue; }
+      const s1=sumN(bp,p.short,i)/sumN(tr,p.short,i);
+      const s2=sumN(bp,p.mid,i)/sumN(tr,p.mid,i);
+      const s3=sumN(bp,p.long,i)/sumN(tr,p.long,i);
+      out[i]=100*(4*s1 + 2*s2 + s3)/7;
+    }
+    return { lines:[out], name:`Ultimate Osc (${p.short}/${p.mid}/${p.long})` };
+  },
+  'dpo': (p)=>{
+    const c=pluck(DATA,'close');
+    const shift = Math.floor(p.n/2)+1;
+    const ma = SMA(c,p.n);
+    let out=[];
+    for(let i=0;i<c.length;i++){
+      const j=i-shift;
+      out[i]= (j>=0 && ma[j]!=null)? c[i]-ma[j]:undefined;
+    }
+    return { lines:[out], name:`DPO(${p.n})` };
+  },
+  'eom': (p)=>{
+    const H=pluck(DATA,'high'), L=pluck(DATA,'low'), V=pluck(DATA,'volume');
+    let em=[], mid=[], rng=[];
+    for(let i=0;i<DATA.length;i++){
+      if(i===0){ em[i]=undefined; continue; }
+      mid[i] = (H[i]+L[i])/2 - (H[i-1]+L[i-1])/2;
+      rng[i] = (H[i]-L[i]) || 1;
+      em[i] = mid[i]*rng[i]/(V[i]||1);
+    }
+    const smooth = SMA(em,p.n);
+    return { lines:[smooth], name:`EOM(${p.n})` };
+  }
+};
+
+/* ---------- Indicator selection & rendering ---------- */
+function parseSelection(val){
+  // e.g. "ema:20" or "bb:20,2"
+  const [key,argstr] = val.split(':');
+  const args = (argstr||'').split(',').filter(Boolean).map(Number);
+  // Map presets to params
+  switch(key){
+    case 'sma': case 'ema': case 'wma': case 'rma': case 'vwma': case 'hma': case 'kama': case 'dema': case 'tema':
+      return { kind:'overlay', key, p:{ n:args[0] } };
+    case 'bb': return { kind:'overlay', key, p:{ n:args[0], k:args[1] } };
+    case 'kc': return { kind:'overlay', key, p:{ n:args[0], k:args[1] } };
+    case 'donchian': return { kind:'overlay', key, p:{ n:args[0] } };
+    case 'supertrend': return { kind:'overlay', key, p:{ n:args[0], f:args[1] } };
+    case 'psar': return { kind:'overlay', key, p:{ step:args[0], max:args[1] } };
+    case 'ichimoku': return { kind:'overlay', key, p:{ conv:args[0], base:args[1], spanB:args[2] } };
+    case 'vwap': return { kind:'overlay', key, p:{} };
+    case 'emaRibbon': return { kind:'overlay', key, p:{ lens: els.indi.value.includes(':')? args : [8,13,21,34,55] } };
+    case 'fractals': return { kind:'overlay', key, p:{ left: args[0]||2 } };
+    case 'rsi': return { kind:'pane', key, p:{ n:args[0] } };
+    case 'stoch': return { kind:'pane', key, p:{ k:args[0], smooth:args[1], d:args[2] } };
+    case 'stochrsi': return { kind:'pane', key, p:{ n:args[0] } };
+    case 'macd': return { kind:'pane', key, p:{ fast:args[0], slow:args[1], signal:args[2] } };
+    case 'cci': return { kind:'pane', key, p:{ n:args[0] } };
+    case 'adx': return { kind:'pane', key, p:{ n:args[0] } };
+    case 'atr': return { kind:'pane', key, p:{ n:args[0] } };
+    case 'obv': return { kind:'pane', key, p:{} };
+    case 'mfi': return { kind:'pane', key, p:{ n:args[0] } };
+    case 'cmf': return { kind:'pane', key, p:{ n:args[0] } };
+    case 'aroon': return { kind:'pane', key, p:{ n:args[0] } };
+    case 'roc': return { kind:'pane', key, p:{ n:args[0] } };
+    case 'willr': return { kind:'pane', key, p:{ n:args[0] } };
+    case 'trix': return { kind:'pane', key, p:{ n:args[0] } };
+    case 'mom': return { kind:'pane', key, p:{ n:args[0] } };
+    case 'ppo': return { kind:'pane', key, p:{ fast:args[0], slow:args[1], signal:args[2] } };
+    case 'percentb': return { kind:'pane', key, p:{ n:args[0], k:args[1] } };
+    case 'uo': return { kind:'pane', key, p:{ short:args[0], mid:args[1], long:args[2] } };
+    case 'dpo': return { kind:'pane', key, p:{ n:args[0] } };
+    case 'eom': return { kind:'pane', key, p:{ n:args[0] } };
+    default: return null;
+  }
+}
+
+function clearOverlay(){
+  overlaySeries.forEach(s=> cMain.removeSeries(s.series));
+  overlaySeries=[];
+}
+function clearPane(){
+  paneSeries.forEach(s=> cIndi.removeSeries(s.series));
+  paneSeries=[];
+}
+
+let activeIndi=null;
+
+function applyIndicator(live=false){
+  if(!DATA.length || !activeIndiSel) return;
+  if(!live){ clearOverlay(); clearPane(); }
+
+  const sel = activeIndiSel;
+  const c = (sel.kind==='overlay'? computeOverlay[sel.key] : computePane[sel.key]);
+  if(!c){ return; }
+
+  const result = c(sel.p);
+
+  // Candle transparency tweak (make “මද දිස්”)
+  const dimOverlay = sel.kind==='overlay';
+  sCandle.applyOptions({
+    upColor: dimOverlay? 'rgba(22,163,74,0.55)' : 'rgba(22,163,74,0.85)',
+    downColor: dimOverlay? 'rgba(239,68,68,0.55)' : 'rgba(239,68,68,0.85)',
+    borderUpColor: dimOverlay? 'rgba(22,163,74,0.6)':'rgba(22,163,74,0.9)',
+    borderDownColor: dimOverlay? 'rgba(239,68,68,0.6)':'rgba(239,68,68,0.9)',
+    wickUpColor: dimOverlay? 'rgba(22,163,74,0.6)':'rgba(22,163,74,0.9)',
+    wickDownColor: dimOverlay? 'rgba(239,68,68,0.6)':'rgba(239,68,68,0.9)',
   });
+
+  // Toggle pane visibility
+  els.paneIndi.classList.toggle('hide', sel.kind!=='pane');
+
+  if(sel.kind==='overlay'){
+    els.lgIndi.textContent='—';
+    els.lgMain.textContent = result.name;
+
+    // lines
+    if(result.lines){
+      result.lines.forEach((arr,idx)=>{
+        const series = cMain.addLineSeries({ lineWidth:1.8, priceLineVisible:false, color: idx===0?'#fcd535': idx===1?'#60a5fa':'#a78bfa' });
+        series.setData( lineFrom(arr) );
+        overlaySeries.push({series});
+      });
+    }
+    // bands (upper/lower)
+    if(result.bands){
+      // draw upper/lower as lines (and optional mid)
+      // already covered in lines
+    }
+    // supertrend color by trend
+    if(result.colorByTrend){
+      const stLine = cMain.addLineSeries({ lineWidth:2, priceLineVisible:false, color:'#fcd535' });
+      stLine.setData( lineFrom(result.lines[0]) );
+      overlaySeries.push({series:stLine});
+    }
+    // PSAR dots
+    if(result.dots){
+      const dots = result.dots.map((v,i)=> v!=null? {time:DATA[i].time, value:v} : null).filter(Boolean);
+      const ps = cMain.addScatterSeries({ color:'#fcd535', size:2, priceLineVisible:false });
+      ps.setData(dots);
+      overlaySeries.push({series:ps});
+    }
+    // Ichimoku
+    if(result.ichimoku){
+      const conv = cMain.addLineSeries({color:'#60a5fa', lineWidth:1.3, priceLineVisible:false});
+      const base = cMain.addLineSeries({color:'#a78bfa', lineWidth:1.3, priceLineVisible:false});
+      const a = cMain.addLineSeries({color:'rgba(16,185,129,0.9)', lineWidth:1, priceLineVisible:false});
+      const b = cMain.addLineSeries({color:'rgba(239,68,68,0.9)', lineWidth:1, priceLineVisible:false});
+      const lag = cMain.addLineSeries({color:'#9ca3af', lineWidth:1, priceLineVisible:false});
+      conv.setData(result.ichimoku.conv);
+      base.setData(result.ichimoku.base);
+      a.setData(result.ichimoku.spanA);
+      b.setData(result.ichimoku.spanB);
+      lag.setData(result.ichimoku.lag);
+      overlaySeries.push({series:conv},{series:base},{series:a},{series:b},{series:lag});
+    }
+    // Fractals
+    if(result.fractals){
+      const upPts = result.fractals.up.map((v,i)=> v!=null? {time:DATA[i].time, value:v}:null).filter(Boolean);
+      const dnPts = result.fractals.dn.map((v,i)=> v!=null? {time:DATA[i].time, value:v}:null).filter(Boolean);
+      const upS = cMain.addScatterSeries({ color:'#60a5fa', size:3, priceLineVisible:false });
+      const dnS = cMain.addScatterSeries({ color:'#f59e0b', size:3, priceLineVisible:false });
+      upS.setData(upPts); dnS.setData(dnPts);
+      overlaySeries.push({series:upS},{series:dnS});
+    }
+  }else{
+    els.lgMain.textContent='—';
+    els.lgIndi.textContent = result.name;
+
+    // pane lines
+    if(result.lines){
+      result.lines.forEach((arr,idx)=>{
+        const series = cIndi.addLineSeries({ lineWidth:1.6, priceLineVisible:false, color: idx===0?'#fcd535': idx===1?'#60a5fa':'#a78bfa' });
+        series.setData( lineFrom(arr) );
+        paneSeries.push({series});
+      });
+    }
+    // bands (like RSI 30/70)
+    if(result.bands){
+      result.bands.forEach((lvl,idx)=>{
+        const bl = cIndi.addLineSeries({ color:'rgba(156,163,175,0.5)', lineWidth:1, priceLineVisible:false });
+        bl.setData(DATA.map(b=>({time:b.time, value:lvl})));
+        paneSeries.push({series:bl});
+      });
+    }
+    // MACD / PPO histogram
+    if(result.macd){
+      const macdL = cIndi.addLineSeries({color:'#fcd535', lineWidth:1.6, priceLineVisible:false});
+      const sigL  = cIndi.addLineSeries({color:'#60a5fa', lineWidth:1.2, priceLineVisible:false});
+      const hist  = cIndi.addHistogramSeries({ priceLineVisible:false, base:0, color:'rgba(167,139,250,0.7)' });
+      macdL.setData(lineFrom(result.macd.macd));
+      sigL.setData(lineFrom(result.macd.signal));
+      hist.setData(lineFrom(result.macd.hist));
+      paneSeries.push({series:macdL},{series:sigL},{series:hist});
+    }
+  }
+}
+
+/* ---------- UI events ---------- */
+$('reload').addEventListener('click', loadAll);
+els.tf.addEventListener('change', loadAll);
+els.symbol.addEventListener('keydown', (e)=>{ if(e.key==='Enter') loadAll(); });
+els.symbol.addEventListener('change', ()=>{ const v=els.symbol.value.toUpperCase(); if(VALID_SET.has(v)) loadAll(); });
+els.quote.addEventListener('change', ()=>{ populatePairs(); loadAll(); });
+
+let activeIndiSel=null;
+els.applyIndi.addEventListener('click', ()=>{
+  activeIndiSel = parseSelection(els.indi.value);
+  applyIndicator();
 });
-window.addEventListener('load', loadAll);
+els.indi.addEventListener('change', ()=>{
+  activeIndiSel = parseSelection(els.indi.value);
+  applyIndicator();
+});
+
+/* ---------- Init ---------- */
+(async function(){
+  await loadExchangeInfo();
+  populatePairs();
+  const q = els.quote.value;
+  const defaultSym = (BY_QUOTE[q]||[]).find(s=>s.startsWith('BTC')) || (BY_QUOTE[q]||[])[0] || 'BTCUSDT';
+  els.symbol.value = defaultSym;
+  await loadAll();
+  // set default indicator
+  activeIndiSel = parseSelection(els.indi.value);
+  applyIndicator();
+})();
 </script>
 </body>
 </html>
