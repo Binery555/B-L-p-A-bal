@@ -1,561 +1,535 @@
 <!DOCTYPE html>
-<html lang="en" >
-<head>
-  <meta charset="UTF-8">
-  <title>Untitled</title>
-  
-
-</head>
-<body>
-<!-- partial:index.partial.html -->
-<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>Binance Auto Pattern Detection (Channels, Triangles/Wedges) + RSI & Entry Arrows</title>
-<link href="https://db.onlinewebfonts.com/c/d05c19ccecf7003d248c60ffd6b5e8f7?family=Binance+PLEX" rel="stylesheet"/>
-<script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.2.1/dist/lightweight-charts.standalone.production.js"></script>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>AI Signal Studio — EMA Strategy (Single + 3-Screen)</title>
+<link rel="preconnect" href="https://unpkg.com"/>
+<script src="https://unpkg.com/lightweight-charts@4.1.1/dist/lightweight-charts.standalone.production.js"></script>
 <style>
   :root{
-    --bg:#0b0e11; --panel:#141a1f; --grid:#222831; --text:#d1d4dc;
-    --up:#00c076; --dn:#ff554a; --accent:#f0b90b;
-    --lineU:#7aa2ff; --lineL:#ffa7a7; --lineT:#f39c12;
-    --muted:#9aa4af;
+    --bg:#0b0f14; --panel:#0f1621; --panel2:#0b1320; --ink:#e6eef7; --muted:#9eb1c7;
+    --line:#1a2736; --accent:#fcd535; --up:#16a34a; --down:#ef4444;
   }
+  *{box-sizing:border-box}
   html,body{height:100%}
   body{
-    margin:0; background:var(--bg); color:var(--text);
-    font:14px/1.4 "Binance PLEX", system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial, sans-serif;
+    margin:0; overflow:hidden;
+    background:linear-gradient(180deg,#080c12,#0b1119 30%,#0b0f14);
+    color:var(--ink);
+    font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif
   }
   header{
-    display:flex; align-items:center; gap:12px; padding:10px 14px; background:var(--panel);
-    position:sticky; top:0; z-index:5; border-bottom:1px solid #101418; flex-wrap:wrap;
+    position:sticky;top:0;z-index:5;background:rgba(11,15,20,.85);backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line);display:flex;gap:14px;align-items:center;padding:10px 14px
   }
-  header .dot{width:8px;height:8px;border-radius:50%}
-  .badge{
-    position:absolute; padding:4px 8px; border-radius:6px; font-weight:700; font-size:12px;
-    color:#0b0e11; background:var(--accent); box-shadow:0 6px 16px rgba(0,0,0,.35); pointer-events:none;
-    transform:translate(-50%,-100%); border:1px solid rgba(0,0,0,.35);
-    white-space:nowrap
-  }
-  .pill{
-    background:#0f1720; color:#c9d1d9; border:1px solid #213040; padding:6px 10px; border-radius:10px;
-  }
-  .row{display:flex; align-items:center; gap:8px; flex-wrap:wrap}
+  header h1{font-size:16px;margin:0 10px 0 0;letter-spacing:.2px;color:#fff}
   .spacer{flex:1}
-  select,input,button{background:#0f1720;color:#c9d1d9;border:1px solid #213040;border-radius:8px;padding:6px 10px;outline:none}
-  button{cursor:pointer}
-  a{color:var(--accent); text-decoration:none}
-  .slim{padding:4px 8px}
-  .muted{opacity:.85}
-  .w200{min-width:200px}
-  .w160{min-width:160px}
-  .w120{min-width:120px}
-
-  /* Layout: price pane (70%), RSI pane (30%) */
-  #stage{position:relative; height:calc(100vh - 96px); width:100%; display:flex; flex-direction:column;}
-  #pricePane{position:relative; height:70%; min-height:280px}
-  #rsiPane{position:relative; height:30%; min-height:140px; border-top:1px solid #0f1318}
-  .pane-title{
-    position:absolute; top:6px; left:10px; z-index:2; font-size:12px; color:var(--muted); background:rgba(0,0,0,.2); padding:2px 6px; border-radius:6px; border:1px solid rgba(255,255,255,.05)
+  .ctrl{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .hint{font-size:12px;color:var(--muted)}
+  select, input, button{
+    background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:10px;
+    padding:8px 10px;font:inherit;outline:none;
   }
-  .kbd{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size:12px; padding:2px 6px; border:1px solid #213040; border-radius:6px; background:#0e141b; color:#c9d1d9}
-  .legend{position:absolute; right:10px; top:6px; font-size:12px; color:var(--muted)}
+  button{cursor:pointer}
+  .seg{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  .seg button{border:0;padding:8px 12px;background:transparent}
+  .seg button.active{background:var(--panel2)}
+  .wrap{
+    height:calc(100vh - 56px);
+    padding:12px; display:grid; gap:12px;
+    grid-template-rows: 1fr; /* replaced dynamically by view mode */
+  }
+  .card{
+    height:100%;
+    background:linear-gradient(180deg,var(--panel),var(--panel2));
+    border:1px solid var(--line);border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.25);
+    position:relative;overflow:hidden
+  }
+  .card .title{
+    position:absolute;inset:8px auto auto 10px;font-size:12px;color:var(--muted);z-index:2;
+    background:rgba(255,255,255,.04);padding:4px 8px;border-radius:8px;border:1px solid var(--line)
+  }
+  .slot{position:absolute;inset:0}
+  /* top status for 3-screen */
+  .tri-status{
+    position:absolute;top:10px;right:10px;z-index:3;
+    display:flex;align-items:center;gap:10px;
+    background:rgba(255,255,255,.06);border:1px solid var(--line);
+    padding:8px 10px;border-radius:12px;backdrop-filter:blur(8px)
+  }
+  .dot{width:10px;height:10px;border-radius:50%}
+  .badge{font-size:12px}
+  .legend{
+    position:absolute;left:10px;bottom:10px;z-index:3;
+    display:flex;gap:10px;flex-wrap:wrap;color:#c8d7ea;font-size:11px;
+    background:rgba(255,255,255,.05);border:1px solid var(--line);
+    padding:6px 8px;border-radius:8px
+  }
+  .legend .k{display:flex;align-items:center;gap:6px}
+  .legend .sw{width:18px;height:2px;border-radius:2px}
+  /* per-panel rule badge */
+  .rule{
+    position:absolute;top:10px;left:10px;z-index:3;
+    display:flex;gap:8px;align-items:center;
+    background:rgba(255,255,255,.06);border:1px solid var(--line);
+    padding:6px 8px;border-radius:10px;font-size:11px
+  }
 </style>
 </head>
 <body>
-  <header>
-    <div class="dot" style="background:var(--accent)"></div>
-    <strong>Auto Pattern Detector</strong>
-
-    <!-- Symbol controls -->
-    <div class="row">
-      <label class="muted">Market</label>
-      <select id="quote" class="w120">
-        <option value="USDT" selected>USDT</option>
-        <option value="FDUSD">FDUSD</option>
-        <option value="BUSD">BUSD</option>
-        <option value="ALL">All</option>
-      </select>
-
-      <label class="muted">Symbol</label>
-      <select id="symbolSel" class="w200"></select>
-
-      <input id="symFilter" placeholder="Search (e.g., BTC, ETH, XRP…)" class="w200"/>
-      <button id="refreshList" class="slim">Reload Symbols</button>
+<header>
+  <h1>AI Signal Studio — EMA Strategy</h1>
+  <div class="spacer"></div>
+  <div class="ctrl">
+    <label class="hint">Symbol</label>
+    <input id="symbol" list="pairs" value="BTCUSDT" style="min-width:140px" />
+    <datalist id="pairs">
+      <option>BTCUSDT</option><option>ETHUSDT</option><option>BNBUSDT</option><option>SOLUSDT</option>
+      <option>XRPUSDT</option><option>ADAUSDT</option><option>DOGEUSDT</option><option>TONUSDT</option>
+      <option>AVAXUSDT</option><option>TRXUSDT</option><option>LINKUSDT</option><option>MATICUSDT</option>
+      <option>NEARUSDT</option><option>OPUSDT</option><option>ARBUSDT</option><option>DOTUSDT</option>
+      <option>ATOMUSDT</option><option>LTCUSDT</option><option>ETCUSDT</option><option>FILUSDT</option>
+    </datalist>
+    <label class="hint">TF</label>
+    <select id="tf">
+      <option value="5m">5m</option><option value="15m" selected>15m</option><option value="1h">1h</option>
+      <option value="4h">4h</option><option value="1d">1d</option>
+    </select>
+    <div class="seg" id="viewSeg">
+      <button data-view="single">Single</button>
+      <button class="active" data-view="tri">3-Screen</button>
     </div>
+    <button id="reload">Load</button>
+  </div>
+</header>
 
-    <!-- Interval / pattern controls -->
-    <div class="row">
-      <label class="muted">Interval</label>
-      <select id="intv">
-        <option value="1m">1m</option><option value="5m">5m</option>
-        <option value="15m">15m</option><option value="1h" selected>1h</option>
-        <option value="4h">4h</option><option value="1d">1d</option>
-      </select>
-      <label class="muted"><input type="checkbox" id="histToggle" checked/> History Patterns</label>
-      <label class="muted">Max history</label>
-      <select id="histLimit" class="w120">
-        <option value="500" selected>500</option>
-        <option value="1000">1000</option>
-        <option value="1500">1500</option>
-      </select>
-      <button id="apply" class="pill">Apply</button>
+<div class="wrap" id="wrap">
+  <!-- Single main chart -->
+  <div class="card" id="singleCard" style="display:none">
+    <div class="title">Single Chart — Price + EMA 9/20/50/200 + BB + Supertrend + EMA Entry Arrows</div>
+    <div class="legend">
+      <div class="k"><span class="sw" style="background:#22d3ee"></span>EMA 9</div>
+      <div class="k"><span class="sw" style="background:#60a5fa"></span>EMA 20</div>
+      <div class="k"><span class="sw" style="background:#f59e0b"></span>EMA 50</div>
+      <div class="k"><span class="sw" style="background:#a78bfa"></span>EMA 200</div>
+      <div class="k"><span class="sw" style="background:#93c5fd"></span>BB</div>
+      <div class="k"><span class="sw" style="background:#22c55e"></span>Supertrend</div>
     </div>
-
-    <div class="spacer"></div>
-
-    <div class="row">
-      <span class="pill">Patterns: Channel ↑/↓, Contracting Triangle/Wedge</span>
-      <span class="pill">RSI crossover arrows <span class="kbd">30↑ = Long</span> / <span class="kbd">70↓ = Short</span></span>
-    </div>
-  </header>
-
-  <div id="stage">
-    <div id="pricePane">
-      <div class="pane-title">Price</div>
-      <div class="legend" id="priceLegend"></div>
-    </div>
-    <div id="rsiPane">
-      <div class="pane-title">RSI (14)</div>
-      <div class="legend" id="rsiLegend">30 / 70</div>
-    </div>
+    <div class="slot" id="c-single"></div>
   </div>
 
+  <!-- 3-screen multi-timeframe -->
+  <div class="card" id="triCard">
+    <div class="title">3-Screen (4H • 1H • 15m)</div>
+    <div class="tri-status" id="triStatus">
+      <div class="dot" id="triDot"></div>
+      <div class="badge" id="triText">Checking…</div>
+    </div>
+    <div class="slot" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:8px">
+      <!-- 4H -->
+      <div class="card" style="height:auto">
+        <div class="rule" id="r4h">4H: price above EMA-200?</div>
+        <div class="slot" id="c-4h"></div>
+      </div>
+      <!-- 1H -->
+      <div class="card" style="height:auto">
+        <div class="rule" id="r1h">1H: pullback near EMA-50?</div>
+        <div class="slot" id="c-1h"></div>
+      </div>
+      <!-- 15m -->
+      <div class="card" style="height:auto">
+        <div class="rule" id="r15">15m: 9↑20 + bullish engulfing?</div>
+        <div class="legend" style="left:auto;right:10px">
+          <div class="k"><span class="sw" style="background:#22d3ee"></span>EMA 9</div>
+          <div class="k"><span class="sw" style="background:#60a5fa"></span>EMA 20</div>
+        </div>
+        <div class="slot" id="c-15m"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
-/* -------------------- Config -------------------- */
-const settings = {
-  symbol: 'BTCUSDT',
-  interval: '1h',
-  historyLimit: 500,
-  showHistory: true,
-  maxHistoryDetections: 6,   // limit badges/lines from past
-  windowLookback: 160,        // bars per scan window
-  windowStep: 40,             // step when scanning history
-  rsiLen: 14,
+/* ========= Utilities & Indicators ========= */
+async function fetchKlines(symbol, interval, limit=800){
+  const url = `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=${interval}&limit=${limit}`;
+  const res = await fetch(url);
+  const raw = await res.json();
+  if(!Array.isArray(raw)) throw new Error(JSON.stringify(raw));
+  return raw.map(k=>({
+    time: Math.floor(k[0]/1000),
+    open: +k[1], high: +k[2], low:+k[3], close:+k[4],
+    volume:+k[5]
+  }));
+}
+const SMA=(arr,p,acc=x=>x)=>{const o=Array(arr.length).fill(null);let s=0;for(let i=0;i<arr.length;i++){s+=acc(arr[i]);if(i>=p)s-=acc(arr[i-p]);if(i>=p-1)o[i]=s/p}return o}
+const EMA=(arr,p,acc=x=>x)=>{const o=Array(arr.length).fill(null);const k=2/(p+1);let e=null;for(let i=0;i<arr.length;i++){const v=acc(arr[i]);if(v==null){o[i]=null;continue;}if(e==null){if(i>=p-1){let s=0;for(let j=i-p+1;j<=i;j++)s+=acc(arr[j]);e=s/p;o[i]=e}}else{e=v*k+e*(1-k);o[i]=e}}return o}
+const STDEV=(arr,p,acc=x=>x)=>{const o=Array(arr.length).fill(null);const m=SMA(arr,p,acc);for(let i=0;i<arr.length;i++){if(i<p-1)continue;let s2=0;for(let j=i-p+1;j<=i;j++){const d=acc(arr[j])-m[i];s2+=d*d}o[i]=Math.sqrt(s2/p)}return o}
+function Bollinger(data, period=20, mult=2){
+  const mid = SMA(data, period, d=>d.close);
+  const sd  = STDEV(data, period, d=>d.close);
+  const up  = sd.map((s,i)=> s==null?null:mid[i]+mult*s);
+  const low = sd.map((s,i)=> s==null?null:mid[i]-mult*s);
+  return {mid, up, low};
+}
+function ATR(data, period=14){
+  const tr = Array(data.length).fill(null);
+  for(let i=1;i<data.length;i++){
+    const hl = data[i].high - data[i].low;
+    const hc = Math.abs(data[i].high - data[i-1].close);
+    const lc = Math.abs(data[i].low - data[i-1].close);
+    tr[i] = Math.max(hl, hc, lc);
+  }
+  const out = Array(data.length).fill(null);
+  let atr = null;
+  for(let i=0;i<data.length;i++){
+    if(i<period) continue;
+    if(atr==null){
+      let s=0; for(let j=i-period+1;j<=i;j++) s+=tr[j]||0;
+      atr = s/period; out[i]=atr;
+    }else{
+      atr = ((atr*(period-1)) + (tr[i]||0))/period; out[i]=atr;
+    }
+  }
+  return out;
+}
+function Supertrend(data, atrPeriod=10, mult=3){
+  const atr = ATR(data, atrPeriod);
+  const out = Array(data.length).fill(null);
+  let prevFU=null, prevFL=null, up=false;
+  for(let i=1;i<data.length;i++){
+    if(atr[i]==null)continue;
+    const hl2=(data[i].high+data[i].low)/2;
+    const bU=hl2+mult*atr[i], bL=hl2-mult*atr[i];
+    const fU=(prevFU==null)?bU:(bU<prevFU||data[i-1].close>prevFU)?bU:prevFU;
+    const fL=(prevFL==null)?bL:(bL>prevFL||data[i-1].close<prevFL)?bL:prevFL;
+    if(up && data[i].close<fL) up=false; else if(!up && data[i].close>fU) up=true;
+    out[i]= up? fL: fU; prevFU=fU; prevFL=fL;
+  }
+  return {line:out};
+}
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const nearByATR=(price,target,atr,th=0.4)=> Math.abs(price-target) <= (th*(atr||0));
+
+/* ========= Chart factory ========= */
+const mkChart = (el)=> {
+  const chart = LightweightCharts.createChart(el, {
+    layout:{background:{type:'solid',color:'transparent'},textColor:'#cfe3ff'},
+    grid:{vertLines:{color:'#0e1a28'},horzLines:{color:'#0e1a28'}},
+    rightPriceScale:{borderColor:'#223246'}, timeScale:{borderColor:'#223246'},
+    crosshair:{mode:0},
+  });
+  const resize=()=>chart.applyOptions({width:el.clientWidth,height:el.clientHeight});
+  const ro=new ResizeObserver(resize); ro.observe(el); resize();
+  return chart;
 };
 
-function getCSS(v){ return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
+/* ========= Single chart (reuses from your previous version) ========= */
+const single = (()=> {
+  const el = document.getElementById('c-single');
+  const chart = mkChart(el);
+  const sCandle = chart.addCandlestickSeries({upColor:'#16a34a',downColor:'#ef4444',borderUpColor:'#16a34a',borderDownColor:'#ef4444',wickUpColor:'#16a34a',wickDownColor:'#ef4444'});
+  const s9  = chart.addLineSeries({color:'#22d3ee', lineWidth:1.5});
+  const s20 = chart.addLineSeries({color:'#60a5fa', lineWidth:1.5});
+  const s50 = chart.addLineSeries({color:'#f59e0b', lineWidth:1.5});
+  const s200= chart.addLineSeries({color:'#a78bfa', lineWidth:1.5});
+  const sBBu= chart.addLineSeries({color:'#93c5fd', lineWidth:1, lineStyle:1});
+  const sBBm= chart.addLineSeries({color:'#93c5fd55', lineWidth:1, lineStyle:2});
+  const sBBl= chart.addLineSeries({color:'#93c5fd', lineWidth:1, lineStyle:1});
+  const sSUP= chart.addLineSeries({color:'#22c55e', lineWidth:1.5});
+  const lineSet=(series,data,arr)=> series.setData(data.map((d,i)=> arr[i]==null? null : ({time:d.time,value:arr[i]})).filter(Boolean));
 
-/* -------------------- Charts -------------------- */
-const priceRoot = document.getElementById('pricePane');
-const rsiRoot   = document.getElementById('rsiPane');
+  let DATA=[], WS=null;
 
-const priceChart = LightweightCharts.createChart(priceRoot, {
-  layout: { background: { color: getCSS('--bg') }, textColor: getCSS('--text') },
-  grid: { vertLines: { color: getCSS('--grid') }, horzLines: { color: getCSS('--grid') } },
-  rightPriceScale: { borderVisible:false },
-  timeScale: { borderVisible:false, timeVisible:true, secondsVisible:false }
-});
-const rsiChart = LightweightCharts.createChart(rsiRoot, {
-  layout: { background: { color: getCSS('--bg') }, textColor: getCSS('--text') },
-  grid: { vertLines: { color: getCSS('--grid') }, horzLines: { color: getCSS('--grid') } },
-  rightPriceScale: { borderVisible:false },
-  timeScale: { borderVisible:false, timeVisible:true, secondsVisible:false }
-});
+  function analyzeAndMarkEMA(data, P){
+    const markers=[];
+    const N=data.length; if(N<210){ sCandle.setMarkers(markers); return; }
+    const crossUp  = (i)=> (P.ema9[i-1] < P.ema20[i-1]) && (P.ema9[i] > P.ema20[i]);
+    const crossDn  = (i)=> (P.ema9[i-1] > P.ema20[i-1]) && (P.ema9[i] < P.ema20[i]);
+    const bullEng  = (i)=> (data[i].close>data[i].open) && (data[i-1].close<data[i-1].open) &&
+                          (data[i].close>=data[i-1].open) && (data[i].open<=data[i-1].close);
+    const bearEng  = (i)=> (data[i].close<data[i].open) && (data[i-1].close>data[i-1].open) &&
+                          (data[i].close<=data[i-1].open) && (data[i].open>=data[i-1].close);
 
-// series
-const candles = priceChart.addCandlestickSeries({
-  upColor:getCSS('--up'), downColor:getCSS('--dn'),
-  wickUpColor:getCSS('--up'), wickDownColor:getCSS('--dn'),
-  borderVisible:false,
-});
-const rsiSeries = rsiChart.addLineSeries({ color:'#7db3ff', lineWidth:2 });
-const rsi30 = rsiChart.addLineSeries({ color:'#8b949e', lineWidth:1, lineStyle: LightweightCharts.LineStyle.Dotted });
-const rsi70 = rsiChart.addLineSeries({ color:'#8b949e', lineWidth:1, lineStyle: LightweightCharts.LineStyle.Dotted });
+    const score = (kind,i)=>{
+      const c = data[i].close, atr = P.atr[i]||P.atr[i-1]||0.00001;
+      let pts=0;
+      if(P.ema200[i]!=null){
+        const dist = Math.abs(c-P.ema200[i])/atr;
+        const ok = clamp(dist/2,0,1);
+        const side=(kind==='LONG'&&c>P.ema200[i])||(kind==='SHORT'&&c<P.ema200[i]);
+        pts += side?25*ok:0;
+      }
+      let best=Infinity;
+      if(P.ema20[i]!=null) best=Math.min(best, Math.abs(c-P.ema20[i])/(atr||1));
+      if(P.ema50[i]!=null) best=Math.min(best, Math.abs(c-P.ema50[i])/(atr||1));
+      if(isFinite(best)) pts += 25*clamp((0.6-best)/0.4,0,1);
+      if((kind==='LONG'&&crossUp(i))||(kind==='SHORT'&&crossDn(i))) pts+=20;
+      else if((kind==='LONG'&&(P.ema9[i-2]<P.ema20[i-2])&&(P.ema9[i-1]>P.ema20[i-1]))||
+              (kind==='SHORT'&&(P.ema9[i-2]>P.ema20[i-2])&&(P.ema9[i-1]<P.ema20[i-1]))) pts+=10;
+      if((kind==='LONG'&&bullEng(i))||(kind==='SHORT'&&bearEng(i))) pts+=15;
+      if(P.sup.line[i]!=null){
+        const align=(kind==='LONG'&&c>=P.sup.line[i])||(kind==='SHORT'&&c<=P.sup.line[i]);
+        if(align) pts+=10;
+      }
+      if(P.bb.mid[i]!=null){
+        const mid=P.bb.mid[i];
+        if((kind==='LONG'&&c>=mid)||(kind==='SHORT'&&c<=mid)) pts+=5;
+      }
+      return Math.round(clamp(pts,0,100));
+    };
 
-// keep panes synced
-let syncing=false;
-function syncVisibleRange(from, to){
-  if(syncing) return;
-  syncing = true;
-  const range = { from, to };
-  priceChart.timeScale().setVisibleRange(range);
-  rsiChart.timeScale().setVisibleRange(range);
-  syncing = false;
-}
-priceChart.timeScale().subscribeVisibleTimeRangeChange((range)=>{
-  if(range) syncVisibleRange(range.from, range.to);
-});
-rsiChart.timeScale().subscribeVisibleTimeRangeChange((range)=>{
-  if(range) syncVisibleRange(range.from, range.to);
-});
+    for(let i=20;i<N;i++){
+      const c=data[i].close;
+      const pullback = nearByATR(c, P.ema50[i], P.atr[i], .35) || nearByATR(c, P.ema20[i], P.atr[i], .35);
+      const trendUp  = P.ema200[i]!=null && c>P.ema200[i];
+      const trendDn  = P.ema200[i]!=null && c<P.ema200[i];
 
-let data = [];            // price bars
-let rsi = [];             // rsi values
-let socket = null;
-const patternObjs = [];   // pattern lines + badges to clear
-let priceMarkers = [];    // arrows on price
-let rsiMarkers = [];      // arrows on rsi
-
-/* -------------------- API helpers -------------------- */
-const api = {
-  klines: (symbol, interval, limit=500) =>
-    fetch(`https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=${interval}&limit=${limit}`).then(r=>r.json()),
-  exchangeInfo: () =>
-    fetch('https://api.binance.com/api/v3/exchangeInfo').then(r=>r.json()),
-};
-const wsUrl = (symbol, interval) => `wss://stream.binance.com:9443/ws/${symbol.toLowerCase()}@kline_${interval}`;
-function mapKline(arr){
-  return { time: Math.floor(arr[0]/1000), open:+arr[1], high:+arr[2], low:+arr[3], close:+arr[4] };
-}
-
-/* -------------------- Swings + regression (patterns) -------------------- */
-function getSwings(src, left=2, right=2){
-  const highs=[], lows=[];
-  for(let i=left;i<src.length-right;i++){
-    let isHigh=true, isLow=true;
-    for(let j=1;j<=left;j++){
-      if (src[i-j].high >= src[i].high) isHigh=false;
-      if (src[i-j].low  <= src[i].low ) isLow=false;
-    }
-    for(let j=1;j<=right;j++){
-      if (src[i+j].high > src[i].high) isHigh=false;
-      if (src[i+j].low  < src[i].low ) isLow=false;
-    }
-    if (isHigh) highs.push({ i, time: src[i].time, price: src[i].high });
-    if (isLow)  lows.push({ i, time: src[i].time, price: src[i].low  });
-  }
-  return { highs, lows };
-}
-function linReg(points){
-  const n=points.length;
-  if (n<2) return {m:0,b:points[0]?.price ?? 0};
-  const sx = points.reduce((a,p)=>a+p.i,0);
-  const sy = points.reduce((a,p)=>a+p.price,0);
-  const sxx= points.reduce((a,p)=>a+p.i*p.i,0);
-  const sxy= points.reduce((a,p)=>a+p.i*p.price,0);
-  const denom = n*sxx - sx*sx || 1e-9;
-  const m = (n*sxy - sx*sy)/denom;
-  const b = (sy - m*sx)/n;
-  return { m, b };
-}
-const vAt = (line, i)=> line.m*i + line.b;
-
-/* -------------------- Draw helpers (patterns) -------------------- */
-function clearPatterns(){
-  while(patternObjs.length){
-    const obj = patternObjs.pop();
-    if (obj.series) priceChart.removeSeries(obj.series);
-    if (obj.badge && obj.badge.remove) obj.badge.remove();
-  }
-}
-function drawLine(t0, v0, t1, v1, color){
-  const s = priceChart.addLineSeries({ color, lineWidth:2, priceScaleId:'right' });
-  s.setData([{time:t0, value:v0}, {time:t1, value:v1}]);
-  patternObjs.push({series:s});
-  return s;
-}
-function spawnBadge(time, price, text){
-  const el = document.createElement('div');
-  el.className = 'badge';
-  el.textContent = text;
-  priceRoot.appendChild(el);
-  function position(){
-    const x = priceChart.timeScale().timeToCoordinate(time);
-    const y = candles.priceScale('right').priceToCoordinate(price);
-    if (x!=null && y!=null){
-      el.style.left = x+'px';
-      el.style.top  = y+'px';
-      el.style.display='block';
-    } else el.style.display='none';
-  }
-  position();
-  priceChart.timeScale().subscribeVisibleTimeRangeChange(position);
-  priceChart.subscribeCrosshairMove(position);
-  window.addEventListener('resize', position);
-  patternObjs.push({badge:el});
-}
-function detectPatternOnSlice(src){
-  const { highs, lows } = getSwings(src, 2, 2);
-  if (highs.length < 5 || lows.length < 5) return null;
-
-  const N=8;
-  const H = highs.slice(-N);
-  const L = lows.slice(-N);
-  if (H.length<3 || L.length<3) return null;
-
-  const up = linReg(H);
-  const dn = linReg(L);
-  const startIdx = Math.min(H[0]?.i ?? 0, L[0]?.i ?? 0);
-  const endIdx   = src.length-1;
-  const widthStart = (vAt(up,startIdx) - vAt(dn,startIdx));
-  const widthEnd   = (vAt(up,endIdx)   - vAt(dn,endIdx));
-  if (!isFinite(widthStart) || !isFinite(widthEnd) || widthStart<=0) return null;
-
-  const widthNarrowing = widthEnd / widthStart < 0.72;
-  const angleUp = up.m, angleDn = dn.m;
-
-  let label = null, colorUpper=getCSS('--lineU'), colorLower=getCSS('--lineL'), colorBoth=null;
-  if (angleUp > 0 && angleDn > 0 && Math.abs(angleUp - angleDn) < Math.abs(angleUp)*0.65){
-    label = "Ascending Channel";
-  } else if (angleUp < 0 && angleDn < 0 && Math.abs(angleUp - angleDn) < Math.abs(angleUp)*0.65){
-    label = "Descending Channel";
-  } else if ((angleUp < 0 && angleDn > 0) || (angleUp > 0 && angleDn < 0)){
-    label = widthNarrowing ? "Contracting Triangle/Wedge" : "Broadening Structure";
-    colorBoth = getCSS('--lineT');
-  }
-  if (!label) return null;
-
-  return { label, startIdx, endIdx, up, dn, colorUpper, colorLower, colorBoth };
-}
-function drawDetectionOnSeries(slice){
-  const det = detectPatternOnSlice(slice);
-  if (!det) return false;
-  const {label,startIdx,endIdx,up,dn,colorUpper,colorLower,colorBoth} = det;
-
-  const t0 = slice[startIdx].time;
-  const t1 = slice[endIdx].time;
-
-  if (colorBoth){
-    drawLine(t0, vAt(up,startIdx), t1, vAt(up,endIdx), colorBoth);
-    drawLine(t0, vAt(dn,startIdx), t1, vAt(dn,endIdx), colorBoth);
-  } else {
-    drawLine(t0, vAt(up,startIdx), t1, vAt(up,endIdx), colorUpper);
-    drawLine(t0, vAt(dn,startIdx), t1, vAt(dn,endIdx), colorLower);
-  }
-
-  const midIdx = Math.floor((startIdx+endIdx)/2);
-  const midTime = slice[midIdx].time;
-  const midPrice = (vAt(up,midIdx)+vAt(dn,midIdx))/2;
-  spawnBadge(midTime, midPrice, label);
-  return true;
-}
-
-/* -------------------- RSI + Entry arrows -------------------- */
-function computeRSI(src, len=14){
-  if (!src || src.length < len+2) return [];
-  const out = [];
-  let gain=0, loss=0;
-  // seed
-  for(let i=1;i<=len;i++){
-    const ch = src[i].close - src[i-1].close;
-    gain += Math.max(ch,0);
-    loss += Math.max(-ch,0);
-  }
-  gain/=len; loss/=len;
-  let rs = loss===0 ? 100 : gain/loss;
-  out[len] = { time: src[len].time, value: 100 - (100/(1+rs)) };
-
-  for(let i=len+1;i<src.length;i++){
-    const ch = src[i].close - src[i-1].close;
-    const up = Math.max(ch,0);
-    const dn = Math.max(-ch,0);
-    // Wilder smoothing
-    gain = (gain*(len-1) + up)/len;
-    loss = (loss*(len-1) + dn)/len;
-    rs = loss===0 ? 100 : gain/(loss||1e-12);
-    out[i] = { time: src[i].time, value: 100 - (100/(1+rs)) };
-  }
-  // compact to contiguous array
-  return out.filter(Boolean);
-}
-
-function updateRSIAndMarkers(){
-  rsi = computeRSI(data, settings.rsiLen);
-  rsiSeries.setData(rsi);
-
-  // 30/70 guide lines spanning current data range
-  if (data.length){
-    const t0 = data[0].time, t1 = data[data.length-1].time;
-    rsi30.setData([{time:t0,value:30},{time:t1,value:30}]);
-    rsi70.setData([{time:t0,value:70},{time:t1,value:70}]);
-  }
-
-  // Build arrows from RSI cross logic:
-  // Long when RSI crosses up through 30; Short when RSI crosses down through 70.
-  priceMarkers = [];
-  rsiMarkers = [];
-  for (let i=1;i<rsi.length;i++){
-    const prev = rsi[i-1].value;
-    const cur  = rsi[i].value;
-    const t    = rsi[i].time;
-    const bar  = data.find(b=>b.time===t);
-    if (!bar) continue;
-
-    if (prev < 30 && cur >= 30){
-      // LONG arrow
-      priceMarkers.push({
-        time:t, position:'belowBar', color:getCSS('--up'),
-        shape:'arrowUp', text:`RSI 30↑ LONG`
-      });
-      rsiMarkers.push({
-        time:t, position:'belowBar', color:getCSS('--up'),
-        shape:'arrowUp', text:`30↑`
-      });
-    }
-    if (prev > 70 && cur <= 70){
-      // SHORT arrow
-      priceMarkers.push({
-        time:t, position:'aboveBar', color:getCSS('--dn'),
-        shape:'arrowDown', text:`RSI 70↓ SHORT`
-      });
-      rsiMarkers.push({
-        time:t, position:'aboveBar', color:getCSS('--dn'),
-        shape:'arrowDown', text:`70↓`
-      });
-    }
-  }
-  candles.setMarkers(priceMarkers);
-  rsiSeries.setMarkers(rsiMarkers);
-  document.getElementById('priceLegend').textContent = `${settings.symbol} · ${settings.interval}`;
-}
-
-/* -------------------- Analyze (patterns) -------------------- */
-let analyzeQueued=false;
-function analyze(){
-  if (analyzeQueued) return;
-  analyzeQueued = true;
-  requestAnimationFrame(()=>{
-    analyzeQueued=false;
-    clearPatterns();
-    const lookback = settings.windowLookback;
-    const src = data.slice(-lookback);
-    if (src.length < 60) return;
-
-    drawDetectionOnSeries(src);
-
-    if (settings.showHistory){
-      let count=0;
-      const step = settings.windowStep;
-      for (let end=data.length-lookback-step; end>lookback && count<settings.maxHistoryDetections; end-=step){
-        const slice = data.slice(end-lookback, end);
-        const ok = drawDetectionOnSeries(slice);
-        if (ok) count++;
+      if(trendUp && pullback && crossUp(i) && bullEng(i)){
+        const s = score('LONG',i);
+        sCandle.setMarkers([...(sCandle.markers||[]), { time:data[i].time, position:'belowBar', color:s>=70?'#10b981':'#22d3ee', shape:'arrowUp', text:`LONG ${s}` }]);
+      }
+      if(trendDn && pullback && crossDn(i) && bearEng(i)){
+        const s = score('SHORT',i);
+        sCandle.setMarkers([...(sCandle.markers||[]), { time:data[i].time, position:'aboveBar', color:s>=70?'#ef4444':'#fb7185', shape:'arrowDown', text:`SHORT ${s}` }]);
       }
     }
-  });
-}
-
-/* -------------------- Load data & WS -------------------- */
-async function load(symbol, interval){
-  // close old WS
-  if (socket) try{ socket.close(); }catch(e){}
-  // fetch history
-  const raw = await api.klines(symbol, interval, settings.historyLimit);
-  if (!Array.isArray(raw) || raw.length===0){ console.warn('No kline data'); return; }
-  data = raw.map(mapKline);
-  candles.setData(data);
-  updateRSIAndMarkers();
-  analyze();
-
-  // visible range fit both panes
-  const range = { from: data[Math.max(0,data.length-200)].time, to: data[data.length-1].time };
-  priceChart.timeScale().setVisibleRange(range);
-  rsiChart.timeScale().setVisibleRange(range);
-
-  // subscribe live
-  socket = new WebSocket(wsUrl(symbol, interval));
-  socket.onmessage = (ev)=>{
-    const m = JSON.parse(ev.data);
-    if(!m.k) return;
-    const k = m.k;
-    const bar = { time: Math.floor(k.t/1000), open:+k.o, high:+k.h, low:+k.l, close:+k.c };
-    const last = data[data.length-1];
-    if (last && bar.time === last.time){
-      data[data.length-1] = bar;
-      candles.update(bar);
-    } else if (k.x) {
-      data.push(bar);
-      if (data.length > settings.historyLimit) data.shift();
-      candles.update(bar);
-    } else {
-      candles.update(bar);
-    }
-    if (data.length >= 20){
-      updateRSIAndMarkers();
-      analyze();
-    }
-  };
-  socket.onopen = ()=>console.log('WS connected');
-  socket.onclose = ()=>console.log('WS closed');
-}
-
-/* -------------------- Symbols list (Binance all markets) -------------------- */
-let allSymbols = []; // {symbol, baseAsset, quoteAsset, status}
-async function loadSymbols(){
-  try{
-    const info = await api.exchangeInfo();
-    const tradables = info.symbols.filter(s=>s.status==='TRADING');
-    allSymbols = tradables.map(s=>({symbol:s.symbol, base:s.baseAsset, quote:s.quoteAsset, status:s.status}));
-    populateSymbolSelect();
-  }catch(e){
-    console.error('exchangeInfo failed', e);
   }
-}
-function populateSymbolSelect(){
-  const sel = document.getElementById('symbolSel');
-  const q = document.getElementById('quote').value;
-  const f = document.getElementById('symFilter').value.trim().toUpperCase();
-  sel.innerHTML = '';
-  let list = allSymbols.slice();
-  if (q !== 'ALL') list = list.filter(s=>s.quote===q);
-  if (f){
-    const parts = f.split(/\s+/).filter(Boolean);
-    list = list.filter(s=>{
-      const text = `${s.symbol} ${s.base} ${s.quote}`.toUpperCase();
-      return parts.every(p=>text.includes(p));
-    });
-  }
-  list.sort((a,b)=> (a.base < b.base ? -1 : a.base > b.base ? 1 : 0));
-  for (const s of list){
-    const opt = document.createElement('option');
-    opt.value = s.symbol;
-    opt.textContent = `${s.symbol}`;
-    if (s.symbol === settings.symbol) opt.selected = true;
-    sel.appendChild(opt);
-  }
-  if ([...sel.options].every(o=>o.value!==settings.symbol)){
-    const opt = document.createElement('option');
-    opt.value = settings.symbol;
-    opt.textContent = settings.symbol + ' (current)';
-    opt.selected = true;
-    sel.insertBefore(opt, sel.firstChild);
-  }
-}
 
-/* -------------------- UI wiring -------------------- */
-document.getElementById('apply').onclick = ()=>{
-  const sel = document.getElementById('symbolSel');
-  const newSym = sel.value || settings.symbol;
-  settings.symbol = newSym.toUpperCase();
-  settings.interval = document.getElementById('intv').value;
-  settings.historyLimit = +document.getElementById('histLimit').value;
-  settings.showHistory = document.getElementById('histToggle').checked;
-  load(settings.symbol, settings.interval);
-};
-document.getElementById('quote').onchange = populateSymbolSelect;
-document.getElementById('symFilter').oninput = ()=>{
-  clearTimeout(window._symFilterT);
-  window._symFilterT = setTimeout(populateSymbolSelect, 120);
-};
-document.getElementById('refreshList').onclick = loadSymbols;
-document.getElementById('histToggle').onchange = analyze;
-document.getElementById('histLimit').onchange = ()=>{
-  settings.historyLimit = +document.getElementById('histLimit').value;
-  load(settings.symbol, settings.interval);
-};
-document.getElementById('intv').onchange = ()=>{
-  settings.interval = document.getElementById('intv').value;
-  load(settings.symbol, settings.interval);
-};
-window.addEventListener('resize', ()=>{
-  priceChart.timeScale().fitContent();
-  rsiChart.timeScale().fitContent();
-});
+  async function load(sym, tf){
+    if(WS){ WS.close(); WS=null; }
+    DATA = await fetchKlines(sym, tf, 800);
+    const P = {
+      ema9: EMA(DATA,9,d=>d.close), ema20: EMA(DATA,20,d=>d.close),
+      ema50: EMA(DATA,50,d=>d.close), ema200: EMA(DATA,200,d=>d.close),
+      bb: Bollinger(DATA,20,2), atr: ATR(DATA,14), sup: Supertrend(DATA,10,3)
+    };
+    sCandle.setData(DATA.map(d=>({time:d.time,open:d.open,high:d.high,low:d.low,close:d.close})));
+    s9.setData(DATA.map((d,i)=>P.ema9[i]==null?null:{time:d.time,value:P.ema9[i]}).filter(Boolean));
+    s20.setData(DATA.map((d,i)=>P.ema20[i]==null?null:{time:d.time,value:P.ema20[i]}).filter(Boolean));
+    s50.setData(DATA.map((d,i)=>P.ema50[i]==null?null:{time:d.time,value:P.ema50[i]}).filter(Boolean));
+    s200.setData(DATA.map((d,i)=>P.ema200[i]==null?null:{time:d.time,value:P.ema200[i]}).filter(Boolean));
+    sBBu.setData(DATA.map((d,i)=>P.bb.up[i]==null?null:{time:d.time,value:P.bb.up[i]}).filter(Boolean));
+    sBBm.setData(DATA.map((d,i)=>P.bb.mid[i]==null?null:{time:d.time,value:P.bb.mid[i]}).filter(Boolean));
+    sBBl.setData(DATA.map((d,i)=>P.bb.low[i]==null?null:{time:d.time,value:P.bb.low[i]}).filter(Boolean));
+    sSUP.setData(DATA.map((d,i)=>P.sup.line[i]==null?null:{time:d.time,value:P.sup.line[i]}).filter(Boolean));
+    analyzeAndMarkEMA(DATA, P);
 
-/* -------------------- Boot -------------------- */
-(async function(){
-  await loadSymbols();
-  const sel = document.getElementById('symbolSel');
-  if (sel) sel.value = settings.symbol;
-  await load(settings.symbol, settings.interval);
+    const stream=`${sym.toLowerCase()}@kline_${tf}`;
+    WS=new WebSocket(`wss://stream.binance.com:9443/ws/${stream}`);
+    WS.onmessage=(e)=>{
+      const msg=JSON.parse(e.data); if(!msg.k) return;
+      const k=msg.k; const t=Math.floor(k.t/1000);
+      const last=DATA[DATA.length-1]?.time;
+      const bar={time:t,open:+k.o,high:+k.h,low:+k.l,close:+k.c,volume:+k.v};
+      if(last===t){ DATA[DATA.length-1]=bar; } else { DATA.push(bar); if(DATA.length>1200) DATA.shift(); }
+      const P2 = {
+        ema9:[...EMA(DATA,9,d=>d.close)], ema20:EMA(DATA,20,d=>d.close),
+        ema50:EMA(DATA,50,d=>d.close),    ema200:EMA(DATA,200,d=>d.close),
+        bb:Bollinger(DATA,20,2), atr:ATR(DATA,14), sup:Supertrend(DATA,10,3)
+      };
+      sCandle.update(bar);
+      // Only update last values for speed
+      const tLast = {time:t};
+      [ [s9,P2.ema9], [s20,P2.ema20], [s50,P2.ema50], [s200,P2.ema200],
+        [sBBu,P2.bb.up], [sBBm,P2.bb.mid], [sBBl,P2.bb.low], [sSUP,P2.sup.line] ].forEach(([s,a])=>{
+          const v=a.at(-1); if(v!=null) s.update({time:t,value:v});
+      });
+    };
+  }
+  return {load, el};
 })();
+
+/* ========= 3-Screen (4H, 1H, 15m) ========= */
+function makePanel(elId,{with9=false,with20=false,with50=false,with200=true}={}){
+  const chart = mkChart(document.getElementById(elId));
+  const sCandle = chart.addCandlestickSeries({upColor:'#16a34a',downColor:'#ef4444',borderUpColor:'#16a34a',borderDownColor:'#ef4444',wickUpColor:'#16a34a',wickDownColor:'#ef4444'});
+  const s9  = with9  ? chart.addLineSeries({color:'#22d3ee', lineWidth:1.5}) : null;
+  const s20 = with20 ? chart.addLineSeries({color:'#60a5fa', lineWidth:1.5}) : null;
+  const s50 = with50 ? chart.addLineSeries({color:'#f59e0b', lineWidth:1.5}) : null;
+  const s200= with200? chart.addLineSeries({color:'#a78bfa', lineWidth:1.5}) : null;
+  const setLine=(s,data,arr)=> s && s.setData(data.map((d,i)=>arr[i]==null?null:{time:d.time,value:arr[i]}).filter(Boolean));
+  return {chart,sCandle,s9,s20,s50,s200,setLine};
+}
+
+const tri = (()=>{
+  const statusDot = document.getElementById('triDot');
+  const statusTxt = document.getElementById('triText');
+  const r4h = document.getElementById('r4h');
+  const r1h = document.getElementById('r1h');
+  const r15 = document.getElementById('r15');
+
+  const p4h = makePanel('c-4h',{with200:true});
+  const p1h = makePanel('c-1h',{with50:true,with200:true});
+  const p15 = makePanel('c-15m',{with9:true,with20:true,with200:true});
+
+  let D4=[], D1=[], D15=[], WS4=null, WS1=null, WS15=null;
+
+  function setBadge(el, ok, txtOK, txtNG){
+    el.style.borderColor = ok ? '#1f7a4d' : '#60333a';
+    el.style.background = ok ? 'rgba(16,185,129,.12)' : 'rgba(239,68,68,.12)';
+    el.textContent = ok ? txtOK : txtNG;
+  }
+  function setTop(allOK, labels){
+    statusDot.style.background = allOK ? '#10b981' : '#f59e0b';
+    statusTxt.textContent = allOK ? 'Ready: Long Setup' : ('Waiting: ' + labels.filter(x=>!x.ok).map(x=>x.name).join(', '));
+  }
+
+  function lastOK_4h(P){
+    const i=P.ema200.length-1, c=D4.at(-1)?.close, ok = (P.ema200[i]!=null && c>P.ema200[i]);
+    setBadge(r4h, ok, '4H ✓ Above EMA-200', '4H ✗ Below EMA-200');
+    return ok;
+  }
+  function lastOK_1h(P){
+    const i=P.ema50.length-1, c=D1.at(-1)?.close, atr = P.atr[i]||P.atr[i-1]||0;
+    const ok = (P.ema50[i]!=null && nearByATR(c, P.ema50[i], atr, .45));
+    setBadge(r1h, ok, '1H ✓ Pullback near EMA-50', '1H ✗ Not near EMA-50');
+    return ok;
+  }
+  function lastOK_15(P){
+    const i=P.ema20.length-1;
+    if(i<1) { setBadge(r15,false,'','15m ✗ Not ready'); return false; }
+    const crossUp = (P.ema9[i-1] < P.ema20[i-1]) && (P.ema9[i] > P.ema20[i]);
+    const bullEng = (D15[i].close>D15[i].open) && (D15[i-1].close<D15[i-1].open) &&
+                    (D15[i].close>=D15[i-1].open) && (D15[i].open<=D15[i-1].close);
+    const ok = crossUp && bullEng;
+    setBadge(r15, ok, '15m ✓ 9↑20 + Bull Engulf', '15m ✗ Need 9↑20 + Engulf');
+    // Add arrow marker if ok
+    if(ok){
+      const m = [{ time:D15[i].time, position:'belowBar', color:'#10b981', shape:'arrowUp', text:'LONG (9>20 + Engulf)' }];
+      p15.sCandle.setMarkers(m);
+    }
+    return ok;
+  }
+
+  async function load(symbol){
+    // Close old sockets
+    [WS4,WS1,WS15].forEach(ws=>{ if(ws){ws.close();} });
+
+    // Fetch initial data
+    [D4,D1,D15] = await Promise.all([
+      fetchKlines(symbol,'4h',600),
+      fetchKlines(symbol,'1h',800),
+      fetchKlines(symbol,'15m',800),
+    ]);
+
+    // Compute & draw 4H
+    let P4 = { ema200: EMA(D4,200,d=>d.close) };
+    p4h.sCandle.setData(D4.map(d=>({time:d.time,open:d.open,high:d.high,low:d.low,close:d.close})));
+    p4h.setLine(p4h.s200, D4, P4.ema200);
+
+    // 1H
+    let P1 = { ema50: EMA(D1,50,d=>d.close), atr: ATR(D1,14) };
+    p1h.sCandle.setData(D1.map(d=>({time:d.time,open:d.open,high:d.high,low:d.low,close:d.close})));
+    p1h.setLine(p1h.s50, D1, P1.ema50);
+
+    // 15m
+    let P15 = { ema9: EMA(D15,9,d=>d.close), ema20: EMA(D15,20,d=>d.close) };
+    p15.sCandle.setData(D15.map(d=>({time:d.time,open:d.open,high:d.high,low:d.low,close:d.close})));
+    p15.setLine(p15.s9,  D15, P15.ema9);
+    p15.setLine(p15.s20, D15, P15.ema20);
+
+    // Evaluate tri status
+    const flags = [
+      {name:'4H', ok:lastOK_4h({ema200:P4.ema200})},
+      {name:'1H', ok:lastOK_1h({ema50:P1.ema50, atr:P1.atr})},
+      {name:'15m', ok:lastOK_15({ema9:P15.ema9, ema20:P15.ema20})},
+    ];
+    setTop(flags.every(f=>f.ok), flags);
+
+    // Live sockets
+    const sym = symbol.toLowerCase();
+    WS4  = new WebSocket(`wss://stream.binance.com:9443/ws/${sym}@kline_4h`);
+    WS1  = new WebSocket(`wss://stream.binance.com:9443/ws/${sym}@kline_1h`);
+    WS15 = new WebSocket(`wss://stream.binance.com:9443/ws/${sym}@kline_15m`);
+
+    WS4.onmessage=(e)=>{ const k=JSON.parse(e.data).k; if(!k) return;
+      const t=Math.floor(k.t/1000), bar={time:t,open:+k.o,high:+k.h,low:+k.l,close:+k.c};
+      const last=D4.at(-1)?.time; if(last===t) D4[D4.length-1]=bar; else D4.push(bar);
+      P4 = { ema200: EMA(D4,200,d=>d.close) };
+      p4h.sCandle.update(bar);
+      const v=P4.ema200.at(-1); if(v!=null) p4h.s200.update({time:t,value:v});
+      setTop(
+        lastOK_4h({ema200:P4.ema200}) && lastOK_1h({ema50:P1.ema50, atr:P1.atr}) && lastOK_15({ema9:P15.ema9, ema20:P15.ema20}),
+        [{name:'4H',ok:lastOK_4h({ema200:P4.ema200})},{name:'1H',ok:lastOK_1h({ema50:P1.ema50,atr:P1.atr})},{name:'15m',ok:lastOK_15({ema9:P15.ema9,ema20:P15.ema20})}]
+      );
+    };
+    WS1.onmessage=(e)=>{ const k=JSON.parse(e.data).k; if(!k) return;
+      const t=Math.floor(k.t/1000), bar={time:t,open:+k.o,high:+k.h,low:+k.l,close:+k.c};
+      const last=D1.at(-1)?.time; if(last===t) D1[D1.length-1]=bar; else D1.push(bar);
+      P1 = { ema50: EMA(D1,50,d=>d.close), atr: ATR(D1,14) };
+      p1h.sCandle.update(bar);
+      const v=P1.ema50.at(-1); if(v!=null) p1h.s50.update({time:t,value:v});
+      setTop(
+        lastOK_4h({ema200:P4.ema200}) && lastOK_1h({ema50:P1.ema50, atr:P1.atr}) && lastOK_15({ema9:P15.ema9, ema20:P15.ema20}),
+        [{name:'4H',ok:lastOK_4h({ema200:P4.ema200})},{name:'1H',ok:lastOK_1h({ema50:P1.ema50,atr:P1.atr})},{name:'15m',ok:lastOK_15({ema9:P15.ema9,ema20:P15.ema20})}]
+      );
+    };
+    WS15.onmessage=(e)=>{ const k=JSON.parse(e.data).k; if(!k) return;
+      const t=Math.floor(k.t/1000), bar={time:t,open:+k.o,high:+k.h,low:+k.l,close:+k.c};
+      const last=D15.at(-1)?.time; if(last===t) D15[D15.length-1]=bar; else D15.push(bar);
+      P15 = { ema9: EMA(D15,9,d=>d.close), ema20: EMA(D15,20,d=>d.close) };
+      p15.sCandle.update(bar);
+      const v9=P15.ema9.at(-1), v20=P15.ema20.at(-1);
+      if(v9!=null)  p15.s9.update({time:t,value:v9});
+      if(v20!=null) p15.s20.update({time:t,value:v20});
+      setTop(
+        lastOK_4h({ema200:P4.ema200}) && lastOK_1h({ema50:P1.ema50, atr:P1.atr}) && lastOK_15({ema9:P15.ema9, ema20:P15.ema20}),
+        [{name:'4H',ok:lastOK_4h({ema200:P4.ema200})},{name:'1H',ok:lastOK_1h({ema50:P1.ema50,atr:P1.atr})},{name:'15m',ok:lastOK_15({ema9:P15.ema9,ema20:P15.ema20})}]
+      );
+    };
+  }
+
+  return {load};
+})();
+
+/* ========= View switching & loading ========= */
+const els = {
+  symbol: document.getElementById('symbol'),
+  tf: document.getElementById('tf'),
+  wrap: document.getElementById('wrap'),
+  singleCard: document.getElementById('singleCard'),
+  triCard: document.getElementById('triCard'),
+  viewSeg: document.getElementById('viewSeg'),
+};
+let viewMode = 'tri'; // default per your request
+
+function applyView(){
+  if(viewMode==='single'){
+    els.wrap.style.gridTemplateRows = '1fr';
+    els.singleCard.style.display='block';
+    els.triCard.style.display='none';
+  }else{
+    // Make sure 3-screen fits height (single row)
+    els.wrap.style.gridTemplateRows = '1fr';
+    els.singleCard.style.display='none';
+    els.triCard.style.display='block';
+  }
+}
+
+async function loadAll(){
+  const sym=els.symbol.value.trim().toUpperCase();
+  if(!sym.endsWith('USDT')){ alert('Use USDT pairs like BTCUSDT'); return; }
+  applyView();
+  if(viewMode==='single'){
+    await single.load(sym, document.getElementById('tf').value);
+  }else{
+    await tri.load(sym);
+  }
+}
+
+/* Events */
+document.getElementById('reload').addEventListener('click', loadAll);
+els.viewSeg.querySelectorAll('button').forEach(b=>{
+  b.addEventListener('click', ()=>{
+    els.viewSeg.querySelectorAll('button').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+    viewMode = b.dataset.view;
+    loadAll();
+  });
+});
+window.addEventListener('load', loadAll);
 </script>
-</body>
-</html>
-<!-- partial -->
-  
 </body>
 </html>
