@@ -80,26 +80,6 @@
       padding-top: env(safe-area-inset-top, 0px);
     }
 
-    .top-toggle{
-      position:relative;width:var(--seg-w);
-      margin:2px auto 6px;padding:var(--seg-pad);
-      background:#20242c;border:1px solid #343a40;border-radius:var(--seg-r);
-      display:grid;grid-template-columns:1fr 1fr;gap:var(--seg-gap);
-    }
-    .top-toggle .seg-thumb{
-      position:absolute;top:var(--seg-pad);bottom:var(--seg-pad);left:var(--seg-pad);
-      width:calc(50% - var(--seg-gap));
-      background:#2b303a;border:1px solid #3f4652;border-radius:var(--seg-thumb-r);
-      box-shadow:inset 0 0 0 1px rgba(255,255,255,.02),0 2px 8px rgba(0,0,0,.35);
-      transition:transform .25s ease;transform:translateX(0%);
-    }
-    .top-toggle .toggle-btn{
-      position:relative;z-index:1;height:var(--seg-h);line-height:var(--seg-h);
-      padding:0 8px;font-size:var(--seg-font);font-weight:700;color:#9ba3af;border-radius:var(--seg-thumb-r);
-      letter-spacing:.2px;
-    }
-    .top-toggle .toggle-btn.active{ color:#fff; }
-
     .main-nav{display:flex;justify-content:flex-start;gap:10px;margin:2px 0 6px 0}
     .main-nav button{padding:8px 6px;font-size:15px;color:#A1A6B0}
     .main-nav button.active{color:#FFF;border-bottom:none}
@@ -164,8 +144,6 @@
       scrollbar-color: #000 transparent !important;
     }
     .feed::-webkit-scrollbar{display:none !important;width:0 !important;height:0 !important;background:transparent !important}
-    .feed::-webkit-scrollbar-thumb{background:#000 !important;border-radius:10px !important}
-    .feed::-webkit-scrollbar-track{background:transparent !important}
 
     .empty-state{margin:0 0;background:var(--panel-bg);border-radius:10px;padding:20px;text-align:center;border:1px solid #2b2f36}
     .empty-state i{font-size:28px;opacity:.9;margin-bottom:10px;display:inline-block}
@@ -205,28 +183,6 @@
       text-transform: uppercase;
       border-radius: 3px;
     }
-    .exclamations { display: flex; margin-left: 6px; }
-    .exclamations span {
-      position: relative;
-      width: 2px;
-      height: 10px;
-      background: var(--secondary-bg);
-      margin: 0 1px;
-      border-radius: 1px;
-      transition: background 0.3s ease;
-    }
-    .exclamations span::after {
-      content: '';
-      position: absolute;
-      bottom: -3px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 2px;
-      height: 2px;
-      background: inherit;
-      border-radius: 50%;
-    }
-    .exclamations span.green, .exclamations span.green::after { background: var(--text-green); }
     .share { margin-left: auto; color: var(--text-secondary); font-size: 16px; cursor: pointer; }
 
     .content-columns {
@@ -250,15 +206,6 @@
     .value { font-size: 14px; font-weight: 400; color: #fff; transition: all 0.2s ease; }
     .value.green, .value.percent.green { color: var(--text-green); font-size: 18px; font-weight: 700; }
     .value.red, .value.percent.red { color: var(--text-red); font-size: 18px; font-weight: 700; }
-    .margin-ratio-value { font-size: 12px !important; }
-
-    .panel-divider{
-      margin-top:8px;
-      height:1px;
-      width:100%;
-      background:#3a4048;
-      opacity:.95;
-    }
 
     .bottom-nav{
       position:fixed;
@@ -282,19 +229,7 @@
       background:transparent;
     }
     .bottom-nav button.active{color:#FFF}
-    .bottom-nav .photo-slot--bottom {
-      width: 22px;
-      height: 22px;
-      border-radius: 4px;
-    }
-    .bottom-nav .photo-slot--bottom img {
-      width: 92%;
-      height: 92%;
-      margin: 4%;
-    }
-    .bottom-nav button span {
-      font-size: 11px;
-    }
+    .bottom-nav button span { font-size: 11px; }
 
     .photo-slot{
       width:var(--slot-top); height:var(--slot-top);
@@ -307,7 +242,6 @@
       width:88%; height:88%; margin:6%;
       object-fit:cover; display:block;
       border:none; outline:none; background:transparent;
-      image-rendering:auto;
     }
     .photo-slot--bottom img{
       width:90%; height:90%; margin:5%; object-fit:cover; display:block;
@@ -317,275 +251,9 @@
     }
 
     body.pnl-open{ overflow:hidden; }
-
-    .pnl-modal-backdrop{
-      position:fixed; inset:0; background:rgba(0,0,0,.6);
-      display:none; align-items:flex-end; justify-content:center; z-index:1000;
-      padding: 0 10px 0 !important;
-      align-items: flex-end !important;
-    }
-    .pnl-modal-backdrop.open{ display:flex; }
-    .pnl-modal{
-      position:relative;
-      width: min(var(--app-w), calc(100vw - 20px)) !important;
-      max-width: 520px !important;
-      outline:0; border:0; background:transparent;
-    }
-    .pnl-close{ display:none !important; }
-
-    .pnl-scene{
-      background:#2f343d;
-      border:1px solid #3a3f49;
-      border-radius:22px !important;
-      padding:12px 12px calc(34px + env(safe-area-inset-bottom, 0px)) !important;
-      margin:0 auto !important;
-      width:100% !important;
-      max-width: var(--app-w) !important;
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-      box-shadow:0 8px 20px rgba(0,0,0,.35) inset;
-      transform:none !important;
-      overflow:hidden;
-    }
-    .pnl-scene::before{
-      content:'';
-      display:block;
-      width:56px;
-      height:4px;
-      border-radius:999px;
-      background: rgba(255,255,255,.18);
-      margin: 2px auto 10px;
-    }
-
-    .pnl-carousel{ width:calc(350px - 1cm); overflow:hidden; touch-action:pan-y; cursor:grab; }
-    .pnl-carousel.grabbing{ cursor:grabbing; }
-    .pnl-track{ display:flex; width:300%; will-change:transform; transition:transform .25s ease; }
-    .pnl-slide{ width:calc(350px - 1cm); flex:0 0 calc(350px - 1cm); padding:0; }
-
-    .pnl-card {
-      font-family: Inter, "Segoe UI", system-ui, -apple-system, sans-serif !important;
-      font-feature-settings:"tnum"1,"lnum"1;
-      letter-spacing:.15px;
-      color:#fff;
-      border-radius:16px;
-      width:100%;
-      overflow:hidden;
-      border:none !important;
-      box-shadow:none !important;
-      position:relative;
-      margin:0 auto;
-      background:#000 center/cover no-repeat;
-    }
-    .pnl-card.bg1{ background-image:url('https://iili.io/Kr9UiVR.gif'); }
-    .pnl-card.bg2{ background-image:url('https://iili.io/Kgp9GJj.gif'); }
-    .pnl-card.bg3{ background-image:url('https://iili.io/qqbBcNV.md.gif'); }
-
-    .pnl-card .card-header {
-      padding:16px;
-      display:flex;
-      align-items:center;
-      gap:12px;
-      margin-bottom:1cm;
-    }
-    .pnl-card .avatar { width:32px; height:32px; border-radius:50%; overflow:hidden; flex:0 0 32px; }
-    .pnl-card .avatar img { width:100%; height:100%; object-fit:cover; }
-    .pnl-card .username { display:flex; flex-direction:column; }
-    .pnl-card .username span:first-child { font-weight:600; font-size:13px; }
-    .pnl-card .username span:last-child { font-size:11px; opacity:.9; }
-
-    .pnl-card .card-body { padding:0 16px 20px 16px; margin-bottom:1cm; }
-    .pnl-card .title { font-size:16px; font-weight:700; text-transform:uppercase; }
-    .pnl-card .position {
-      margin:6px 0 8px;
-      display:inline-flex;
-      align-items:center;
-      gap:10px;
-      font-size:13px;
-      font-weight:600;
-    }
-    .pnl-card .position .side { color:#ff6b6b; }
-    .pnl-card .position .divider {
-      width:1px; height:12px; background:#6a6a6a;
-      display:inline-block; transform:translateY(1px);
-    }
-    .pnl-card .position .lev { color:#b3b3b3; }
-    .pnl-card .pnl {
-      color:#0ecb81;
-      font-size:32px;
-      font-weight:700;
-      margin:8px 0;
-      letter-spacing:-.5px;
-    }
-    .pnl-card .usdt { font-size:16px; margin-left:4px; font-weight:600; color:#fff; }
-    .pnl-card .prices {
-      display:flex;
-      justify-content:space-between;
-      font-size:12px;
-      margin-top:14px !important;
-    }
-    .pnl-card .prices .entry,
-    .pnl-card .prices .last{ margin-top:6px !important; }
-    .pnl-card .prices .label { color:#939393 !important; font-size:11px; }
-    .pnl-card .prices .last{ transform: translateX(-2.3cm); }
-
-    .pnl-card .card-footer { background:#000; padding:0; display:block; position:relative; }
-    .pnl-card .footer-line { display:block; width:100%; height:1px; background:#444; margin:0; }
-    .pnl-card .footer-content {
-      padding:16px;
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap:10px;
-    }
-    .pnl-card .footer-left{
-      font-size:12px;
-      display:flex;
-      align-items:center;
-      gap:8px;
-      line-height:1.1;
-      transform: translateX(-0.35cm);
-    }
-    .pnl-card .footer-left .binance-badge{
-      display:inline-flex;
-      align-items:center;
-      gap:var(--badge-gap);
-      margin-bottom:2px;
-    }
-    .pnl-card .footer-left .binance-badge img{
-      width:var(--badge-icon); height:var(--badge-icon);
-      transform: translateX(0.12cm);
-    }
-    .pnl-card .footer-left .binance-badge .brand{
-      color:#fcd535;
-      font-weight:800;
-      letter-spacing:0;
-      margin-left:0;
-    }
-    .pnl-card .footer-left .futures-ref{
-      color:#fff;
-      padding-left: calc(var(--badge-icon) + var(--badge-gap));
-      text-indent: 0;
-      display:block;
-    }
-    .pnl-card .footer-left .binance-badge + .futures-ref{
-      font-size:16px !important;
-      font-weight:600 !important;
-      line-height:1.1 !important;
-      letter-spacing:0.2px !important;
-      margin-top:-4px !important;
-      transform:translateY(-2px) !important;
-    }
-    .pnl-card .footer-left .binance-badge + .futures-ref + .futures-ref{
-      font-size:12px !important;
-      font-weight:400 !important;
-    }
-    .pnl-card .footer-left .futures-ref:last-child{
-      margin-top: 0.10cm;
-      transform: translateY(0);
-    }
-
-    .pnl-card .qr {
-      width:60px;
-      height:60px;
-      background:#fff;
-      border-radius:6px;
-      overflow:hidden;
-    }
-    .pnl-card .qr img { width:100%; height:100%; object-fit:cover; }
-
-    .pnl-underbar{
-      width: 100% !important;
-      margin: 14px 0 0 !important;
-      display:flex;
-      flex-direction:column;
-      align-items:stretch !important;
-      font-size:13px;
-    }
-    .pnl-underbar .selector {
-      margin:6px 0 10px;
-      display:flex;
-      justify-content:flex-start;
-      gap:18px !important;
-      font-size:13px;
-      transform:none !important;
-      padding: 0 6px !important;
-    }
-    .pnl-underbar .selector label {
-      display:flex;
-      align-items:center;
-      gap:5px;
-      cursor:pointer;
-    }
-    .pnl-underbar .selector input[type="radio"] { accent-color:white; }
-    .pnl-underbar .bottom-bar {
-      display:flex;
-      justify-content:space-between !important;
-      gap:0 !important;
-      margin-top:8px;
-      transform:none !important;
-      width: 100% !important;
-      padding: 12px 6px 34px !important;
-      align-self: stretch !important;
-    }
-    .pnl-underbar .action {
-      width:56px !important;
-      height:56px !important;
-      background:#1b1c22;
-      border:1px solid #2e2f37;
-      border-radius:14px !important;
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-      justify-content:center !important;
-      gap:0 !important;
-      cursor:pointer;
-      transition:transform .12s ease, background .12s ease, border-color .12s ease;
-      position:relative !important;
-      overflow:visible !important;
-    }
-    .pnl-underbar .action:hover {
-      transform:translateY(-2px);
-      background:#242632;
-      border-color:#3a3b47;
-    }
-    .pnl-underbar .action img {
-      width:22px !important;
-      height:22px !important;
-      display:block;
-    }
-    .pnl-underbar .action span {
-      position:absolute !important;
-      top:calc(100% + 6px) !important;
-      left:50% !important;
-      transform:translateX(-50%) !important;
-      font-size:11px !important;
-      color:#cfd3dc !important;
-      line-height:1 !important;
-      white-space:nowrap !important;
-    }
-
-    .pnl-card .one-glyph{
-      font-family: "Binance PLEX", Inter, "Segoe UI", system-ui, -apple-system, sans-serif !important;
-      font-weight: 700;
-      display:inline-block;
-      letter-spacing: 0;
-      transform: translateY(0.2px);
-    }
-    .no-one-stylize .one-glyph{
-      font-family: inherit !important;
-      font-weight: inherit !important;
-    }
-    .pnl-card .month-one{
-      font-size: 1em;
-      line-height: 1;
-      display:inline-block;
-      transform: translateY(-0.6px);
-    }
-
-    /* ===== PNL HISTORY MODAL ===== */
     body.history-open{ overflow:hidden; }
 
+    .pnl-modal-backdrop,
     .history-modal-backdrop{
       position:fixed;
       inset:0;
@@ -596,7 +264,95 @@
       z-index:1100;
       padding:0;
     }
+    .pnl-modal-backdrop.open,
     .history-modal-backdrop.open{ display:flex; }
+
+    .pnl-modal{ position:relative; width:min(var(--app-w), calc(100vw - 20px)); max-width:520px; background:transparent; }
+    .pnl-scene{
+      background:#2f343d;
+      border:1px solid #3a3f49;
+      border-radius:22px;
+      padding:12px 12px calc(34px + env(safe-area-inset-bottom, 0px));
+      margin:0 auto;
+      width:100%;
+      max-width: var(--app-w);
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      box-shadow:0 8px 20px rgba(0,0,0,.35) inset;
+      overflow:hidden;
+    }
+    .pnl-carousel{ width:calc(350px - 1cm); overflow:hidden; touch-action:pan-y; cursor:grab; }
+    .pnl-track{ display:flex; width:300%; will-change:transform; transition:transform .25s ease; }
+    .pnl-slide{ width:calc(350px - 1cm); flex:0 0 calc(350px - 1cm); padding:0; }
+
+    .pnl-card {
+      font-family: Inter, sans-serif !important;
+      color:#fff;
+      border-radius:16px;
+      width:100%;
+      overflow:hidden;
+      position:relative;
+      margin:0 auto;
+      background:#000 center/cover no-repeat;
+    }
+    .pnl-card.bg1{ background-image:url('https://iili.io/Kr9UiVR.gif'); }
+    .pnl-card.bg2{ background-image:url('https://iili.io/Kgp9GJj.gif'); }
+    .pnl-card.bg3{ background-image:url('https://iili.io/qqbBcNV.md.gif'); }
+
+    .pnl-card .card-header { padding:16px; display:flex; align-items:center; gap:12px; margin-bottom:1cm; }
+    .pnl-card .avatar { width:32px; height:32px; border-radius:50%; overflow:hidden; flex:0 0 32px; }
+    .pnl-card .avatar img { width:100%; height:100%; object-fit:cover; }
+    .pnl-card .username { display:flex; flex-direction:column; }
+    .pnl-card .username span:first-child { font-weight:600; font-size:13px; }
+    .pnl-card .username span:last-child { font-size:11px; opacity:.9; }
+
+    .pnl-card .card-body { padding:0 16px 20px 16px; margin-bottom:1cm; }
+    .pnl-card .title { font-size:16px; font-weight:700; text-transform:uppercase; }
+    .pnl-card .position { margin:6px 0 8px; display:inline-flex; align-items:center; gap:10px; font-size:13px; font-weight:600; }
+    .pnl-card .position .divider { width:1px; height:12px; background:#6a6a6a; display:inline-block; }
+    .pnl-card .pnl { color:#0ecb81; font-size:32px; font-weight:700; margin:8px 0; }
+    .pnl-card .usdt { font-size:16px; margin-left:4px; font-weight:600; color:#fff; }
+    .pnl-card .prices { display:flex; justify-content:space-between; font-size:12px; margin-top:14px !important; }
+    .pnl-card .prices .label { color:#939393 !important; font-size:11px; }
+    .pnl-card .prices .last{ transform: translateX(-2.3cm); }
+
+    .pnl-card .card-footer { background:#000; }
+    .pnl-card .footer-line { display:block; width:100%; height:1px; background:#444; }
+    .pnl-card .footer-content { padding:16px; display:flex; justify-content:space-between; align-items:center; gap:10px; }
+    .pnl-card .footer-left .binance-badge{ display:inline-flex; align-items:center; gap:var(--badge-gap); margin-bottom:2px; }
+    .pnl-card .footer-left .binance-badge img{ width:var(--badge-icon); height:var(--badge-icon); }
+    .pnl-card .footer-left .binance-badge .brand{ color:#fcd535; font-weight:800; }
+    .pnl-card .footer-left .futures-ref{ color:#fff; display:block; }
+    .pnl-card .qr { width:60px; height:60px; background:#fff; border-radius:6px; overflow:hidden; }
+    .pnl-card .qr img { width:100%; height:100%; object-fit:cover; }
+
+    .pnl-underbar{ width:100%; margin:14px 0 0 !important; display:flex; flex-direction:column; font-size:13px; }
+    .pnl-underbar .selector { margin:6px 0 10px; display:flex; gap:18px !important; padding: 0 6px !important; }
+    .pnl-underbar .bottom-bar { display:flex; justify-content:space-between !important; width:100% !important; padding: 12px 6px 34px !important; }
+    .pnl-underbar .action {
+      width:56px !important;
+      height:56px !important;
+      background:#1b1c22;
+      border:1px solid #2e2f37;
+      border-radius:14px !important;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center !important;
+      cursor:pointer;
+      position:relative !important;
+    }
+    .pnl-underbar .action img { width:22px !important; height:22px !important; display:block; }
+    .pnl-underbar .action span {
+      position:absolute !important;
+      top:calc(100% + 6px) !important;
+      left:50% !important;
+      transform:translateX(-50%) !important;
+      font-size:11px !important;
+      color:#cfd3dc !important;
+      white-space:nowrap !important;
+    }
 
     .history-modal-sheet{
       width:min(100%, 460px);
@@ -611,37 +367,18 @@
     .history-app{
       --app-max: 460px;
       --pad-x: 16px;
-
       --bg: #1F2630;
-      --surface: #2C343F;
-      --divider: rgba(240, 242, 246, 0.08);
-      --border-strong: #607086;
-
       --text: #F0F2F6;
       --text-2: #D5DAE1;
-
       --accent: #F6D348;
-
       --pos: #2FCB8D;
       --neg: #F45F7A;
       --neutral: #6E7887;
-
-      --pos-fill-top: rgba(47, 203, 141, 0.14);
-      --pos-fill-bot: rgba(47, 203, 141, 0.08);
-      --neg-fill-top: rgba(244, 95, 122, 0.14);
-      --neg-fill-bot: rgba(244, 95, 122, 0.08);
-      --zero-fill-top: rgba(118,130,149,.16);
-      --zero-fill-bot: rgba(118,130,149,.10);
-
-      --fs-11: 0.6875rem;
       --fs-12: 0.75rem;
       --fs-13: 0.8125rem;
       --fs-14: 0.875rem;
       --fs-16: 1rem;
       --fs-32: 2rem;
-      --lh-tight: 1.15;
-      --lh: 1.35;
-
       --num-font: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
 
       width:min(100%, var(--app-max));
@@ -651,19 +388,12 @@
       background:var(--bg);
       color:var(--text);
       font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-      line-height:var(--lh);
-      -webkit-font-smoothing:antialiased;
-      -moz-osx-font-smoothing:grayscale;
       padding-bottom: calc(22px + env(safe-area-inset-bottom, 0px));
       scrollbar-width:none;
     }
     .history-app::-webkit-scrollbar{ display:none; }
 
-    .history-app a{ color:inherit; text-decoration:none; }
-    .history-app button{ font:inherit; color:inherit; }
-
     .history-app-header{ padding:10px 0 6px; }
-
     .history-appbar{
       display:grid;
       grid-template-columns:44px 1fr 44px;
@@ -671,15 +401,12 @@
       padding:10px var(--pad-x) 6px;
       gap:6px;
     }
-
     .history-appbar__title{
       margin:0;
       text-align:center;
       font-size:var(--fs-16);
       font-weight:650;
-      letter-spacing:.01em;
     }
-
     .history-title-btn{
       display:inline-flex;
       align-items:center;
@@ -698,13 +425,11 @@
       padding:6px var(--pad-x) 0;
       border-bottom:1px solid rgba(240,242,246,.05);
     }
-
     .history-segment-tab{
       position:relative;
       padding:10px 0 12px;
       font-size:var(--fs-14);
       color:var(--text-2);
-      letter-spacing:.01em;
     }
     .history-segment-tab.is-active{ color:var(--text); }
     .history-segment-tab.is-active::after{
@@ -731,30 +456,12 @@
       border:0;
       border-radius:12px;
       cursor:pointer;
-      touch-action:manipulation;
       padding:0;
     }
 
-    .history-icon-btn--ghost{
-      width:28px;
-      height:28px;
-      opacity:.96;
-    }
-
     .history-pnl-summary{ padding:14px var(--pad-x) 8px; }
-
-    .history-pnl-summary__header{
-      display:flex;
-      align-items:center;
-      gap:8px;
-    }
-
-    .history-section-label{
-      margin:0;
-      font-size:var(--fs-14);
-      color:var(--text-2);
-      font-weight:550;
-    }
+    .history-pnl-summary__header{ display:flex; align-items:center; gap:8px; }
+    .history-section-label{ margin:0; font-size:var(--fs-14); color:var(--text-2); font-weight:550; }
 
     .history-pnl-big{
       display:flex;
@@ -766,15 +473,12 @@
     .history-pnl-big__pct{
       font-size:var(--fs-32);
       font-weight:750;
-      line-height:var(--lh-tight);
-      letter-spacing:-.02em;
       font-family:var(--num-font);
     }
 
     .history-pnl-big__amt{
       font-size:var(--fs-14);
       font-weight:650;
-      opacity:.95;
       font-family:var(--num-font);
     }
 
@@ -807,7 +511,6 @@
     .history-metric__sub{
       font-size:var(--fs-12);
       margin:2px 0 0;
-      opacity:.95;
       font-family:var(--num-font);
     }
 
@@ -830,8 +533,9 @@
     .history-range-pill{
       background:transparent;
       border:0;
-      color:rgba(213,218,225,.75);
-      font-size:var(--fs-13);
+      color:rgba(213,218,225,.7) !important;
+      font-size:var(--fs-13) !important;
+      font-weight:400 !important;
       padding:6px 6px;
       border-radius:999px;
       white-space:nowrap;
@@ -840,15 +544,13 @@
     .history-range-pill.is-active{
       background:rgba(240,242,246,.08);
       border:1px solid rgba(240,242,246,.16);
+      color:rgba(213,218,225,.7) !important;
+      font-size:var(--fs-13) !important;
+      font-weight:400 !important;
       padding:6px 10px;
-      color:var(--text);
     }
 
-    .history-totals{
-      margin:0;
-      padding:0 0 6px;
-    }
-
+    .history-totals{ margin:0; padding:0 0 6px; }
     .history-totals__row{
       display:grid;
       grid-template-columns:1fr auto;
@@ -856,12 +558,10 @@
       padding:8px 0;
       border-bottom:none;
     }
-
     .history-totals__row dt{
       color:rgba(213,218,225,.7);
       font-size:var(--fs-13);
     }
-
     .history-totals__row dd{
       margin:0;
       font-size:var(--fs-13);
@@ -876,12 +576,15 @@
       opacity:1 !important;
     }
 
+    /* UPDATED: remove white line under subtabs, keep Overview white, others same as Net profit/loss label */
     .history-subtabs{
       display:flex;
       gap:18px;
       padding:12px var(--pad-x) 0;
       overflow-x:auto;
       scrollbar-width:none;
+      border-bottom:none !important;
+      box-shadow:none !important;
     }
     .history-subtabs::-webkit-scrollbar{ display:none; }
 
@@ -889,21 +592,28 @@
       position:relative;
       padding:10px 0 12px;
       font-size:var(--fs-14);
-      color:rgba(213,218,225,.75);
+      color:rgba(213,218,225,.7) !important;
       white-space:nowrap;
+      text-decoration:none !important;
+      border-bottom:none !important;
+      box-shadow:none !important;
     }
 
-    .history-subtab.is-active{ color:var(--text); }
+    .history-subtab::after{
+      display:none !important;
+      content:none !important;
+    }
+
+    .history-subtab.is-active{
+      color:#FFFFFF !important;
+      text-decoration:none !important;
+      border-bottom:none !important;
+      box-shadow:none !important;
+    }
 
     .history-subtab.is-active::after{
-      content:"";
-      position:absolute;
-      left:0;
-      bottom:0;
-      width:18px;
-      height:3px;
-      background:var(--accent);
-      border-radius:3px;
+      display:none !important;
+      content:none !important;
     }
 
     .history-daily{ padding:12px var(--pad-x) 0; }
@@ -950,10 +660,8 @@
       margin:0;
       font-size:var(--fs-13);
       color:rgba(213,218,225,.82);
-      letter-spacing:.02em;
       min-width:72px;
       text-align:center;
-      line-height:1;
       font-family:var(--num-font);
     }
 
@@ -965,7 +673,6 @@
       border:0;
       background:transparent;
       padding:0;
-      border-radius:0;
       display:inline-flex;
       align-items:center;
       justify-content:center;
@@ -981,7 +688,6 @@
       display:block;
       width:0;
       height:0;
-      filter:drop-shadow(0 0 1px rgba(255,255,255,.12));
     }
 
     .history-triangle--left{
@@ -1007,7 +713,6 @@
       font-size:var(--fs-12);
       letter-spacing:.08em;
     }
-
     .history-dow span{ text-align:center; }
 
     .history-calendar-grid{
@@ -1034,54 +739,64 @@
       font-variant-numeric: tabular-nums;
     }
 
-    .history-day:hover{ background:rgba(240,242,246,.04); }
-
     .history-day__num{
       font-size:11px;
       font-weight:500;
       color:rgba(240,242,246,.92);
       line-height:1;
       font-family:var(--num-font);
+      z-index:2;
     }
 
     .history-day__val{
       font-size:10px;
       font-weight:500;
       line-height:1;
-      letter-spacing:0;
       opacity:1;
       font-family:var(--num-font);
+      z-index:2;
     }
 
     .history-day--pos{
-      background:linear-gradient(180deg, var(--pos-fill-top), var(--pos-fill-bot));
+      background:linear-gradient(180deg, rgba(47,203,141,.14), rgba(47,203,141,.08));
       border:1px solid rgba(47,203,141,.10);
     }
 
     .history-day--neg{
-      background:linear-gradient(180deg, var(--neg-fill-top), var(--neg-fill-bot));
+      background:linear-gradient(180deg, rgba(244,95,122,.14), rgba(244,95,122,.08));
       border:1px solid rgba(244,95,122,.10);
     }
 
-    .history-day--zero{
-      background:linear-gradient(180deg, var(--zero-fill-top), var(--zero-fill-bot));
-      border:1px solid rgba(118,130,149,.10);
+    .history-day--pending{
+      background:transparent !important;
+      border:0 !important;
+      box-shadow:none !important;
+      cursor:default;
+    }
+    .history-day--pending .history-day__num{
+      color:#FFFFFF !important;
+      position:absolute;
+      top:10px;
+      left:50%;
+      transform:translateX(-50%);
+      text-align:center;
+      width:auto;
+    }
+    .history-day--pending .history-day__val{
+      display:none !important;
     }
 
     .history-day--pos .history-day__num,
-    .history-day--neg .history-day__num,
-    .history-day--zero .history-day__num{
+    .history-day--neg .history-day__num{
       position:absolute;
       top:10px;
       left:50%;
       transform:translateX(-45%);
-      width:auto;
       text-align:center;
     }
 
     .history-day--pos .history-day__val,
-    .history-day--neg .history-day__val,
-    .history-day--zero .history-day__val{
+    .history-day--neg .history-day__val{
       align-self:center;
       padding-top:18px;
     }
@@ -1093,16 +808,8 @@
       background:transparent;
     }
 
-    .history-app-footer{ padding:18px var(--pad-x) 0; }
-
-    .history-home-indicator{
-      width:140px;
-      height:5px;
-      margin:0 auto;
-      background:rgba(240,242,246,.88);
-      border-radius:999px;
-      opacity:.85;
-    }
+    .history-app-footer{ padding:0; display:none; }
+    .history-home-indicator{ display:none !important; }
   </style>
 </head>
 
@@ -1127,16 +834,13 @@
         <span class="balance-title"><span class="balance-title-text">Margin Balance</span><i id="eyeToggle" class="balance-eye" aria-hidden="true"></i></span>
         <span class="icon-group" aria-label="Actions">
           <label class="photo-slot photo-empty" data-slot="top-reward">
-            <input type="file" accept=".jpg,.jpeg,image/jpeg" capture="environment">
-            <img alt="">
+            <input type="file" accept=".jpg,.jpeg,image/jpeg" capture="environment"><img alt="">
           </label>
           <label class="photo-slot photo-empty" data-slot="top-convert">
-            <input type="file" accept=".jpg,.jpeg,image/jpeg" capture="environment">
-            <img alt="">
+            <input type="file" accept=".jpg,.jpeg,image/jpeg" capture="environment"><img alt="">
           </label>
           <label class="photo-slot photo-empty" data-slot="top-statement">
-            <input type="file" accept=".jpg,.jpeg,image/jpeg" capture="environment">
-            <img alt="">
+            <input type="file" accept=".jpg,.jpeg,image/jpeg" capture="environment"><img alt="">
           </label>
         </span>
       </div>
@@ -1187,58 +891,25 @@
     </section>
 
     <nav class="bottom-nav" aria-label="Bottom navigation" id="bottomNav">
-      <button>
-        <label class="photo-slot photo-slot--bottom photo-empty" data-slot="nav-home">
-          <input type="file" accept=".jpg,.jpeg,image/jpeg" capture="environment"><img alt="">
-        </label>
-        <span>Home</span>
-      </button>
-      <button>
-        <label class="photo-slot photo-slot--bottom photo-empty" data-slot="nav-markets">
-          <input type="file" accept=".jpg,.jpeg,image/jpeg" capture="environment"><img alt="">
-        </label>
-        <span>Markets</span>
-      </button>
-      <button>
-        <label class="photo-slot photo-slot--bottom photo-empty" data-slot="nav-trade">
-          <input type="file" accept=".jpg,.jpeg,image/jpeg" capture="environment"><img alt="">
-        </label>
-        <span>Trade</span>
-      </button>
-      <button>
-        <label class="photo-slot photo-slot--bottom photo-empty" data-slot="nav-futures">
-          <input type="file" accept=".jpg,.jpeg,image/jpeg" capture="environment"><img alt="">
-        </label>
-        <span>Futures</span>
-      </button>
-      <button class="active">
-        <label class="photo-slot photo-slot--bottom photo-empty" data-slot="nav-assets">
-          <input type="file" accept=".jpg,.jpeg,image/jpeg" capture="environment"><img alt="">
-        </label>
-        <span>Assets</span>
-      </button>
+      <button><label class="photo-slot photo-slot--bottom photo-empty" data-slot="nav-home"><input type="file" accept=".jpg,.jpeg,image/jpeg" capture="environment"><img alt=""></label><span>Home</span></button>
+      <button><label class="photo-slot photo-slot--bottom photo-empty" data-slot="nav-markets"><input type="file" accept=".jpg,.jpeg,image/jpeg" capture="environment"><img alt=""></label><span>Markets</span></button>
+      <button><label class="photo-slot photo-slot--bottom photo-empty" data-slot="nav-trade"><input type="file" accept=".jpg,.jpeg,image/jpeg" capture="environment"><img alt=""></label><span>Trade</span></button>
+      <button><label class="photo-slot photo-slot--bottom photo-empty" data-slot="nav-futures"><input type="file" accept=".jpg,.jpeg,image/jpeg" capture="environment"><img alt=""></label><span>Futures</span></button>
+      <button class="active"><label class="photo-slot photo-slot--bottom photo-empty" data-slot="nav-assets"><input type="file" accept=".jpg,.jpeg,image/jpeg" capture="environment"><img alt=""></label><span>Assets</span></button>
     </nav>
   </div>
 
-  <!-- SHARE MODAL -->
   <div class="pnl-modal-backdrop" id="pnlBackdrop" aria-hidden="true">
     <div class="pnl-modal" role="dialog" aria-modal="true" aria-labelledby="pnlTitle">
       <div class="pnl-scene">
         <div class="pnl-carousel" id="pnlCarousel">
           <div class="pnl-track" id="pnlTrack">
-
             <div class="pnl-slide">
               <div class="pnl-card bg1" id="pnlCard">
                 <div class="card-header">
-                  <div class="avatar">
-                    <img src="https://iili.io/qqbldmP.md.jpg" alt="User Avatar">
-                  </div>
-                  <div class="username">
-                    <span id="pnlUser">Prasadnuwankumara</span>
-                    <span id="pnlTime">—</span>
-                  </div>
+                  <div class="avatar"><img src="https://iili.io/qqbldmP.md.jpg" alt="User Avatar"></div>
+                  <div class="username"><span id="pnlUser">Prasadnuwankumara</span><span id="pnlTime">—</span></div>
                 </div>
-
                 <div class="card-body">
                   <div class="title" id="pnlTitle">—</div>
                   <div class="position">
@@ -1248,33 +919,21 @@
                   </div>
                   <div class="pnl"><span id="pnlValue">0.00</span> <span class="usdt">USDT</span></div>
                   <div class="prices">
-                    <div class="entry">
-                      <div class="label">Entry Price</div>
-                      <div id="pnlEntry">—</div>
-                    </div>
-                    <div class="last">
-                      <div class="label">Last Price</div>
-                      <div id="pnlLast">—</div>
-                    </div>
+                    <div class="entry"><div class="label">Entry Price</div><div id="pnlEntry">—</div></div>
+                    <div class="last"><div class="label">Last Price</div><div id="pnlLast">—</div></div>
                   </div>
                 </div>
-
                 <div class="card-footer">
                   <span class="footer-line"></span>
                   <div class="footer-content">
                     <div class="footer-left">
                       <div>
-                        <div class="binance-badge">
-                          <img src="https://iili.io/KBDmWsn.th.png" alt="Binance logo">
-                          <span class="brand">BINANCE</span>
-                        </div>
+                        <div class="binance-badge"><img src="https://iili.io/KBDmWsn.th.png" alt="Binance logo"><span class="brand">BINANCE</span></div>
                         <div class="futures-ref">FUTURES</div>
                         <div class="futures-ref">Referral Code 373424470</div>
                       </div>
                     </div>
-                    <div class="qr">
-                      <img src="https://iili.io/qB9m4qJ.jpg" alt="QR Code">
-                    </div>
+                    <div class="qr"><img src="https://iili.io/qB9m4qJ.jpg" alt="QR Code"></div>
                   </div>
                 </div>
               </div>
@@ -1282,39 +941,20 @@
 
             <div class="pnl-slide">
               <div class="pnl-card bg2">
-                <div class="card-header">
-                  <div class="avatar"><img src="https://iili.io/qqbldmP.md.jpg" alt=""></div>
-                  <div class="username"><span class="js-user">—</span><span class="js-time">—</span></div>
-                </div>
+                <div class="card-header"><div class="avatar"><img src="https://iili.io/qqbldmP.md.jpg" alt=""></div><div class="username"><span class="js-user">—</span><span class="js-time">—</span></div></div>
                 <div class="card-body">
                   <div class="title js-title">—</div>
-                  <div class="position">
-                    <span class="side js-side">—</span>
-                    <span class="divider"></span>
-                    <span class="lev js-lev">—</span>
-                  </div>
+                  <div class="position"><span class="side js-side">—</span><span class="divider"></span><span class="lev js-lev">—</span></div>
                   <div class="pnl"><span class="js-pnl">0.00</span> <span class="usdt">USDT</span></div>
                   <div class="prices">
-                    <div class="entry">
-                      <div class="label">Entry Price</div>
-                      <div class="js-entry">—</div>
-                    </div>
-                    <div class="last">
-                      <div class="label">Last Price</div>
-                      <div class="js-last">—</div>
-                    </div>
+                    <div class="entry"><div class="label">Entry Price</div><div class="js-entry">—</div></div>
+                    <div class="last"><div class="label">Last Price</div><div class="js-last">—</div></div>
                   </div>
                 </div>
                 <div class="card-footer">
                   <span class="footer-line"></span>
                   <div class="footer-content">
-                    <div class="footer-left">
-                      <div>
-                        <div class="binance-badge"><img src="https://iili.io/KBDmWsn.th.png" alt=""><span class="brand">BINANCE</span></div>
-                        <div class="futures-ref">FUTURES</div>
-                        <div class="futures-ref">Referral Code 373424470</div>
-                      </div>
-                    </div>
+                    <div class="footer-left"><div><div class="binance-badge"><img src="https://iili.io/KBDmWsn.th.png" alt=""><span class="brand">BINANCE</span></div><div class="futures-ref">FUTURES</div><div class="futures-ref">Referral Code 373424470</div></div></div>
                     <div class="qr"><img src="https://iili.io/qB9m4qJ.jpg" alt=""></div>
                   </div>
                 </div>
@@ -1323,45 +963,25 @@
 
             <div class="pnl-slide">
               <div class="pnl-card bg3">
-                <div class="card-header">
-                  <div class="avatar"><img src="https://iili.io/qqbldmP.md.jpg" alt=""></div>
-                  <div class="username"><span class="js-user">—</span><span class="js-time">—</span></div>
-                </div>
+                <div class="card-header"><div class="avatar"><img src="https://iili.io/qqbldmP.md.jpg" alt=""></div><div class="username"><span class="js-user">—</span><span class="js-time">—</span></div></div>
                 <div class="card-body">
                   <div class="title js-title">—</div>
-                  <div class="position">
-                    <span class="side js-side">—</span>
-                    <span class="divider"></span>
-                    <span class="lev js-lev">—</span>
-                  </div>
+                  <div class="position"><span class="side js-side">—</span><span class="divider"></span><span class="lev js-lev">—</span></div>
                   <div class="pnl"><span class="js-pnl">0.00</span> <span class="usdt">USDT</span></div>
                   <div class="prices">
-                    <div class="entry">
-                      <div class="label">Entry Price</div>
-                      <div class="js-entry">—</div>
-                    </div>
-                    <div class="last">
-                      <div class="label">Last Price</div>
-                      <div class="js-last">—</div>
-                    </div>
+                    <div class="entry"><div class="label">Entry Price</div><div class="js-entry">—</div></div>
+                    <div class="last"><div class="label">Last Price</div><div class="js-last">—</div></div>
                   </div>
                 </div>
                 <div class="card-footer">
                   <span class="footer-line"></span>
                   <div class="footer-content">
-                    <div class="footer-left">
-                      <div>
-                        <div class="binance-badge"><img src="https://iili.io/KBDmWsn.th.png" alt=""><span class="brand">BINANCE</span></div>
-                        <div class="futures-ref">FUTURES</div>
-                        <div class="futures-ref">Referral Code 373424470</div>
-                      </div>
-                    </div>
+                    <div class="footer-left"><div><div class="binance-badge"><img src="https://iili.io/KBDmWsn.th.png" alt=""><span class="brand">BINANCE</span></div><div class="futures-ref">FUTURES</div><div class="futures-ref">Referral Code 373424470</div></div></div>
                     <div class="qr"><img src="https://iili.io/qB9m4qJ.jpg" alt=""></div>
                   </div>
                 </div>
               </div>
             </div>
-
           </div>
         </div>
 
@@ -1384,7 +1004,6 @@
     </div>
   </div>
 
-  <!-- HISTORY MODAL -->
   <div class="history-modal-backdrop" id="historyBackdrop" aria-hidden="true">
     <div class="history-modal-sheet" role="dialog" aria-modal="true" aria-label="Futures PNL History">
       <div class="history-app">
@@ -1395,7 +1014,6 @@
                 <path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
             </button>
-
             <h1 class="history-appbar__title">
               <button class="history-title-btn" type="button">
                 <span>Futures PNL</span>
@@ -1404,7 +1022,6 @@
                 </svg>
               </button>
             </h1>
-
             <button class="history-icon-btn" type="button" aria-label="Share">
               <svg class="history-icon" viewBox="0 0 24 24" aria-hidden="true">
                 <circle cx="6" cy="12" r="2.2" fill="none" stroke="currentColor" stroke-width="2"/>
@@ -1426,7 +1043,7 @@
           <section class="history-pnl-summary">
             <div class="history-pnl-summary__header">
               <h2 class="history-section-label">Today's PNL</h2>
-              <button class="history-icon-btn history-icon-btn--ghost" type="button" aria-label="Toggle visibility">
+              <button class="history-icon-btn" type="button" aria-label="Toggle visibility">
                 <svg class="history-icon history-icon--sm" viewBox="0 0 24 24" aria-hidden="true">
                   <path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7z" fill="none" stroke="currentColor" stroke-width="2"/>
                   <circle cx="12" cy="12" r="2.5" fill="none" stroke="currentColor" stroke-width="2"/>
@@ -1504,9 +1121,7 @@
               <button id="histPrevMonth" class="history-month-nav__btn" type="button" aria-label="Previous month">
                 <span class="history-triangle history-triangle--left" aria-hidden="true"></span>
               </button>
-
               <p id="histMonthLabel" class="history-month-nav__label">----</p>
-
               <button id="histNextMonth" class="history-month-nav__btn" type="button" aria-label="Next month">
                 <span class="history-triangle history-triangle--right" aria-hidden="true"></span>
               </button>
@@ -1537,19 +1152,6 @@
     window.addEventListener('resize', setVh);
     if (window.visualViewport) visualViewport.addEventListener('resize', setVh);
 
-    (function(){
-      const wrap = document.querySelector('.app .top-toggle');
-      if (!wrap) return;
-      const btns  = [...wrap.querySelectorAll('.toggle-btn')];
-      const thumb = wrap.querySelector('.seg-thumb');
-      const setActive = (i) => {
-        btns.forEach((b,idx)=> b.classList.toggle('active', idx===i));
-        if (thumb) thumb.style.transform = `translateX(${i*100}%)`;
-      };
-      setActive(0);
-      btns.forEach((b,i)=> b.addEventListener('click',()=>setActive(i)));
-    })();
-
     function sizeFeed(){
       const feed = document.getElementById('feed');
       const stickyBar = document.getElementById('stickyBar');
@@ -1559,13 +1161,10 @@
 
       const vhVar = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--vh')) || (window.innerHeight * 0.01);
       const viewportH = vhVar * 100;
-
       const topOffset = Math.ceil(topStack.getBoundingClientRect().height + 8);
       stickyBar.style.top = topOffset + 'px';
-
       const barH = stickyBar.getBoundingClientRect().height || 40;
       const bottomH = bottomNav.getBoundingClientRect().height || 56;
-
       const available = viewportH - (topOffset + barH) - bottomH - 12;
       feed.style.height = Math.max(120, available) + 'px';
       feed.style.maxHeight = feed.style.height;
@@ -1573,8 +1172,7 @@
     window.addEventListener('resize', sizeFeed);
     document.addEventListener('DOMContentLoaded', sizeFeed);
 
-    const fmtMoney = (n) =>
-      "$" + Number(n).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const fmtMoney = (n) => "$" + Number(n).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     const fmtPct = (n) => (n >= 0 ? "+" : "") + n.toFixed(2) + "%";
 
     const amountEl = document.getElementById("amount");
@@ -1594,14 +1192,10 @@
       amountEl.textContent   = showTop ? fmtMoney(targetMarginBalance) : "•••••••";
       walletEl.textContent   = showTop ? fmtMoney(walletBalance) : "•••••••";
       unrealEl.textContent   = showTop ? fmtMoney(unrealizedSum) : "•••••••";
-      realizedSpan.textContent = showTop
-        ? `${fmtMoney(realizedTodayUSD)} (${fmtPct(realizedTodayPct)})`
-        : "•••••••";
+      realizedSpan.textContent = showTop ? `${fmtMoney(realizedTodayUSD)} (${fmtPct(realizedTodayPct)})` : "•••••••";
     }
     eye.addEventListener("click", ()=>{
       showTop = !showTop;
-      eye.classList.toggle("fa-eye-slash", !showTop);
-      eye.classList.toggle("fa-eye", showTop);
       refreshTop();
     });
 
@@ -1639,6 +1233,7 @@
       return arr;
     }
     const randInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+    const round2 = (x) => Math.round((Number(x)||0) * 100) / 100;
 
     function formatProfit(_sym, x) {
       const s = toFixedSafe(x, 2);
@@ -1666,14 +1261,8 @@
       'nav-futures': 'https://iili.io/Knrla3v.th.jpg',
       'nav-assets':  'https://iili.io/Knr1Jse.th.jpg'
     };
-    function loadSlot(id){
-      try { return localStorage.getItem(SLOT_KEY_PREFIX + id) || ''; }
-      catch { return ''; }
-    }
-    function saveSlot(id, dataURL){
-      try { localStorage.setItem(SLOT_KEY_PREFIX + id, dataURL); }
-      catch {}
-    }
+    function loadSlot(id){ try { return localStorage.getItem(SLOT_KEY_PREFIX + id) || ''; } catch { return ''; } }
+    function saveSlot(id, dataURL){ try { localStorage.setItem(SLOT_KEY_PREFIX + id, dataURL); } catch {} }
     function initPhotoSlots(){
       document.querySelectorAll('.photo-slot').forEach(slot=>{
         const key = slot.dataset.slot;
@@ -1690,12 +1279,6 @@
         input.addEventListener('change', (e)=>{
           const file = e.target.files && e.target.files[0];
           if(!file) return;
-          const ok = /jpe?g$/i.test(file.name) || file.type === 'image/jpeg';
-          if(!ok){
-            alert('Please upload a JPG (.jpg or .jpeg)');
-            e.target.value='';
-            return;
-          }
           const reader = new FileReader();
           reader.onload = () => {
             img.src = reader.result;
@@ -1707,23 +1290,16 @@
       });
     }
 
-    const round2 = (x) => Math.round((Number(x)||0) * 100) / 100;
-
     const TRADE_MIN = 25, TRADE_MAX = 30;
     const MB_MIN = 10000, MB_MAX = 15000;
     const UNREAL_MIN = 6000, UNREAL_MAX = 8000;
     const DAILY_PNL_MIN = 25, DAILY_PNL_MAX = 350;
-    const SMALL_LOSS_MIN_COUNT = 1;
-    const SMALL_LOSS_MAX_COUNT = 2;
-    const LOSS_FRACTION_MIN = 0.18;
-    const LOSS_FRACTION_MAX = 0.88;
     const LEV_SET = [10,20,50,100];
     const MARGIN_MIN = 25, MARGIN_MAX = 100;
 
-    const STORAGE_TRADES_KEY = 'fa_trades_v4_refreshEveryLoad';
-    const FORCE_NEW_SESSION = true;
-
     const marketMeta = Object.create(null);
+    const allSymbols = ['BTCUSDT','ETHUSDT','BNBUSDT','SOLUSDT','XRPUSDT','DOGEUSDT','TONUSDT','ADAUSDT','AVAXUSDT','TRXUSDT','LINKUSDT','DOTUSDT','NEARUSDT','OPUSDT','ARBUSDT','APTUSDT','INJUSDT','RNDRUSDT','SEIUSDT','TIAUSDT','ONDOUSDT'];
+
     async function loadExchangeMeta() {
       const url = 'https://fapi.binance.com/fapi/v1/exchangeInfo';
       try{
@@ -1741,14 +1317,9 @@
               if ((f.filterType === 'LOT_SIZE' || f.filterType === 'MARKET_LOT_SIZE') && f.minQty) minQty = parseFloat(f.minQty) || 0;
             }
           }
-          marketMeta[sym] = {
-            tickSize,
-            stepSize,
-            minQty,
-            priceDp: dpFromTick(tickSize)
-          };
+          marketMeta[sym] = { tickSize, stepSize, minQty, priceDp: dpFromTick(tickSize) };
         }
-      }catch(e){ }
+      }catch(e){}
     }
     const getMeta = (sym) => marketMeta[sym] || { tickSize: '0.01', stepSize: '0.001', minQty: 0, priceDp: 2 };
     function formatPrice(sym, x) {
@@ -1759,32 +1330,13 @@
       return joinIntDec(i, d);
     }
 
-    const primeSymbols = ['BTCUSDT','ETHUSDT','BNBUSDT','SOLUSDT','XRPUSDT','DOGEUSDT','TONUSDT','ADAUSDT','AVAXUSDT','TRXUSDT','LINKUSDT','DOTUSDT','NEARUSDT','OPUSDT','ARBUSDT','APTUSDT','INJUSDT','RNDRUSDT','SEIUSDT','TIAUSDT','ONDOUSDT'];
-    const seedSymbols = ['BTCUSDT','ETHUSDT','BNBUSDT','ADAUSDT','SOLUSUT','SOLUSDT','XRPUSDT','DOTUSDT','LTCUSDT','LINKUSDT','DOGEUSDT','AAVEUSDT','SUSHIUSDT','SHIBUSDT','COMPUSDT','ETCUSDT','ZECUSDT','XMRUSDT','LRCUSDT','QNTUSDT','CRVUSDT','UNIUSDT','BCHUSDT','XLMUSDT','ATOMUSDT','MATICUSDT','AVAXUSDT','TRXUSDT','EOSUSDT','NEARUSDT','FILUSDT','OPUSDT','ARBUSDT','APTUSDT','SUIUSDT','INJUSDT','RNDRUSDT','GALAUSDT','THETAUSDT','SANDUSDT','MANAUSDT','AXSUSDT','CFXUSDT','ICPUSDT','LDOUSDT','PEPEUSDT','FLOKIUSDT','WIFUSDT','ARKUSDT','IOTAUSDT','KASUSDT','PYTHUSDT','STRKUSDT','JUPUSDT','APEUSDT','BLURUSDT','SEIUSDT','TIAUSDT','TONUSDT','ONDOUSDT'];
-    const allSymbols = Array.from(new Set([...primeSymbols, ...seedSymbols]));
-
-    const maintenanceMarginRates = {
-      BTCUSDT:0.004, ETHUSDT:0.005, BNBUSDT:0.005, ADAUSDT:0.010, SOLUSDT:0.008,
-      XRPUSDT:0.010, DOTUSDT:0.010, LTCUSDT:0.010, LINKUSDT:0.010, DOGEUSDT:0.012,
-      AAVEUSDT:0.010, SUSHIUSDT:0.015, SHIBUSDT:0.020, COMPUSDT:0.010, ETCUSDT:0.010,
-      ZECUSDT:0.015, XMRUSDT:0.020, LRCUSDT:0.020, QNTUSDT:0.015, CRVUSDT:0.020,
-      UNIUSDT:0.010, BCHUSDT:0.010, XLMUSDT:0.015, ATOMUSDT:0.010, MATICUSDT:0.010,
-      AVAXUSDT:0.010, TRXUSDT:0.020, EOSUSDT:0.015, NEARUSDT:0.020, FILUSDT:0.015,
-      OPUSDT:0.015, ARBUSDT:0.020, APTUSDT:0.015, SUIUSDT:0.020, INJUSDT:0.015,
-      RNDRUSDT:0.015, GALAUSDT:0.025, THETAUSDT:0.020, SANDUSDT:0.020, MANAUSDT:0.020,
-      AXSUSDT:0.020, CFXUSDT:0.025, ICPUSDT:0.015, LDOUSDT:0.020, PEPEUSDT:0.030,
-      FLOKIUSDT:0.030, WIFUSDT:0.030, ARKUSDT:0.020, IOTAUSDT:0.020, KASUSDT:0.025,
-      PYTHUSDT:0.020, STRKUSDT:0.020, JUPUSDT:0.020, APEUSDT:0.020, BLURUSDT:0.020,
-      SEIUSDT:0.020, TIAUSDT:0.020, TONUSDT:0.015, ONDOUSDT:0.020
-    };
-    const getMaintRate = (sym) => maintenanceMarginRates[sym] ?? 0.01;
-
     const qtyFrom = (marginUsed, leverage, entry) => (leverage * marginUsed) / entry;
     const upnlLong  = (mark, entry, qty) => (mark - entry) * qty;
     const upnlShort = (mark, entry, qty) => (entry - mark) * qty;
     const roiPct = (pnl, usedMargin) => (pnl / usedMargin) * 100;
     const maintenance = (mmr, mark, qty) => mmr * mark * qty;
     const marginBalanceCalc = (effectiveMargin, uPnL) => effectiveMargin + uPnL;
+    const getMaintRate = () => 0.01;
 
     function liqPriceLong(entry, leverage, mmr, marginUsed, effectiveMargin) {
       const Q = (leverage * marginUsed) / entry;
@@ -1812,30 +1364,16 @@
     };
 
     const feedDiv = document.getElementById('feed');
-    function meterBars(){
-      const totalBars = 4;
-      const greenBars = Math.floor(Math.random() * totalBars) + 1;
-      let html='';
-      for(let j=0;j<totalBars;j++){
-        html += `<span class="${j<greenBars?'green':''}"></span>`;
-      }
-      return html;
-    }
+    const trades=[];
 
     function createPanel({ sym, leverage, entry, mark, usedMargin, effMargin, mmr, qty, side, marginMode }) {
-      const pnl = side === 'LONG'
-        ? upnlLong(mark, entry, qty)
-        : upnlShort(mark, entry, qty);
+      const pnl = side === 'LONG' ? upnlLong(mark, entry, qty) : upnlShort(mark, entry, qty);
       const roi = roiPct(pnl, usedMargin);
       const maint = maintenance(mmr, mark, qty);
       const mBal = marginBalanceCalc(effMargin, pnl);
       const mRatio = marginRatioPct(maint, mBal);
-      const liq = side === 'LONG'
-        ? liqPriceLong(entry, leverage, mmr, usedMargin, effMargin)
-        : liqPriceShort(entry, leverage, mmr, usedMargin, effMargin);
-      const sideIcon = side === 'LONG'
-        ? '<span class="icon-buy">B</span>'
-        : '<span class="icon-sell">S</span>';
+      const liq = side === 'LONG' ? liqPriceLong(entry, leverage, mmr, usedMargin, effMargin) : liqPriceShort(entry, leverage, mmr, usedMargin, effMargin);
+      const sideIcon = side === 'LONG' ? '<span class="icon-buy">B</span>' : '<span class="icon-sell">S</span>';
       const sizeUSDT = mark * qty;
 
       const panel = document.createElement('div');
@@ -1846,7 +1384,6 @@
           <span class="symbol">${sym}</span>
           <span class="tag">PERP</span>
           <span class="tag">${marginMode} ${leverage}×</span>
-          <span class="exclamations">${meterBars()}</span>
           <i class="fas fa-share-nodes share" title="Share PNL"></i>
         </div>
         <div class="content-columns">
@@ -1879,9 +1416,9 @@
               <div class="label">ROI</div>
               <div class="value percent roi ${roi < 0 ? 'red' : 'green'}">${(roi >= 0 ? '+' : '') + toFixedSafe(roi, 2)}%</div>
             </div>
-            <div class="stat margin-ratio">
+            <div class="stat">
               <div class="label">Margin Ratio</div>
-              <div class="value percent margin-ratio-value ${mRatio >= 80 ? 'red' : 'green'}">${toFixedSafe(mRatio, 2)}%</div>
+              <div class="value ${mRatio >= 80 ? 'red' : 'green'}">${toFixedSafe(mRatio, 2)}%</div>
             </div>
             <div class="stat">
               <div class="label no-line">Liq. Price (USDT)</div>
@@ -1889,37 +1426,15 @@
             </div>
           </div>
         </div>
-        <div class="panel-divider"></div>
       `;
-
-      const panelState = {
-        node: panel,
-        sym,
-        leverage,
-        mmr,
-        entry,
-        usedMargin,
-        effMargin,
-        qty,
-        mark,
-        side,
-        marginMode,
-        lockLoss:false,
-        isBalancer:false
-      };
-      panel.querySelector('.share')
-        .addEventListener('click', ()=> openPNLModal(panelState));
+      const panelState = { node: panel, sym, leverage, mmr, entry, usedMargin, effMargin, qty, mark, side, marginMode };
+      panel.querySelector('.share').addEventListener('click', ()=> openPNLModal(panelState));
       return panelState;
     }
 
     function renderTrade(t) {
-      const pnl = t.side === 'LONG'
-        ? upnlLong(t.mark, t.entry, t.qty)
-        : upnlShort(t.mark, t.entry, t.qty);
+      const pnl = t.side === 'LONG' ? upnlLong(t.mark, t.entry, t.qty) : upnlShort(t.mark, t.entry, t.qty);
       const roi = roiPct(pnl, t.usedMargin);
-      const maintV = maintenance(t.mmr, t.mark, t.qty);
-      const mBal = marginBalanceCalc(t.effMargin, pnl);
-      const mRatio = marginRatioPct(maintV, mBal);
       const liq = t.side === 'LONG'
         ? liqPriceLong(t.entry, t.leverage, t.mmr, t.usedMargin, t.effMargin)
         : liqPriceShort(t.entry, t.leverage, t.mmr, t.usedMargin, t.effMargin);
@@ -1937,228 +1452,46 @@
       roiEl.classList.toggle('green', roi >= 0);
       roiEl.classList.toggle('red', roi < 0);
 
-      const mrEl = t.node.querySelector('.value.margin-ratio-value');
-      mrEl.textContent = toFixedSafe(mRatio, 2) + '%';
-      mrEl.classList.toggle('green', mRatio < 80);
-      mrEl.classList.toggle('red', mRatio >= 80);
-
       const liqEl = t.node.querySelector('.value.liq');
       liqEl.textContent = (liq === null) ? '—' : formatPrice(t.sym, liq);
 
       if (currentSharedTrade === t) updatePNLCardFromTrade(t);
     }
 
-    function approxThreeMonthsAgoMs(){
-      const d=new Date();
-      const jitterDays = randInt(88, 94);
-      d.setDate(d.getDate()-jitterDays);
-      d.setHours(0,0,0,0);
-      return d.getTime();
-    }
-
-    async function fetchEntryFromTwoMonths(sym, startMs){
-      try{
-        const url1=`https://fapi.binance.com/fapi/v1/markPriceKlines?symbol=${sym}&interval=1d&startTime=${startMs-2*24*3600*1000}&limit=2`;
-        const res1=await fetch(url1);
-        if(res1.ok){
-          const data=await res1.json();
-          if(Array.isArray(data)&&data.length>0){
-            const k=data[0];
-            const close=parseFloat(k[4]);
-            if(isFinite(close)) return close;
-          }
-        }
-      }catch{}
-      try{
-        const url2=`https://fapi.binance.com/fapi/v1/continuousKlines?pair=${sym}&contractType=PERPETUAL&interval=1d&startTime=${startMs-2*24*3600*1000}&limit=2`;
-        const res2=await fetch(url2);
-        if(res2.ok){
-          const data=await res2.json();
-          if(Array.isArray(data)&&data.length>0){
-            const k=data[0];
-            const close=parseFloat(k[4]);
-            if(isFinite(close)) return close;
-          }
-        }
-      }catch{}
-      try{
-        const url3=`https://fapi.binance.com/fapi/v1/klines?symbol=${sym}&interval=1d&startTime=${startMs-2*24*3600*1000}&limit=2`;
-        const res3=await fetch(url3);
-        if(res3.ok){
-          const data=await res3.json();
-          if(Array.isArray(data)&&data.length>0){
-            const k=data[0];
-            const close=parseFloat(k[4]);
-            if(isFinite(close)) return close;
-          }
-        }
-      }catch{}
-      return null;
-    }
-
-    async function loadTwoMonthEntryMap(symbolList){
-      const start=approxThreeMonthsAgoMs();
-      const entryMap=Object.create(null);
-      const unique=[...new Set(symbolList)];
-      const batch=8;
-      for(let i=0;i<unique.length;i+=batch){
-        const chunk=unique.slice(i,i+batch);
-        await Promise.all(chunk.map(async (sym)=>{
-          const close=await fetchEntryFromTwoMonths(sym,start);
-          if(isFinite(close)) entryMap[sym]=close;
-        }));
-      }
-      return entryMap;
-    }
-
-    const trades=[];
-    let symbols=shuffle(allSymbols.slice());
-    const TRADE_COUNT = randInt(TRADE_MIN, TRADE_MAX);
-
-    function shuffleFeed(){
-      const nodes=Array.from(feedDiv.children);
-      nodes.filter(n=>n.id!=='emptyState')
-           .forEach(n=>feedDiv.appendChild(n));
-    }
-
-    async function seedWithThreeMonthEntries(){
+    async function seedTrades(){
       const empty=document.getElementById("emptyState");
       if(empty) empty.remove();
-
       await loadExchangeMeta();
 
       const res=await fetch('https://fapi.binance.com/fapi/v1/premiumIndex');
       const arr=await res.json();
       const markMap=Object.create(null);
-      arr.forEach(o=>{
-        if(o && o.symbol) markMap[o.symbol]=parseFloat(o.markPrice);
-      });
+      arr.forEach(o=>{ if(o && o.symbol) markMap[o.symbol]=parseFloat(o.markPrice); });
 
-      symbols = symbols.filter(s=>!!marketMeta[s]);
-      const poolForEntry=Array.from(
-        new Set([...primeSymbols, ...symbols.slice(0, TRADE_COUNT*3)])
-      );
-      const entryMap=await loadTwoMonthEntryMap(poolForEntry);
-
-      const mainList=primeSymbols.filter(
-        s=>marketMeta[s]&&isFinite(markMap[s])&&isFinite(entryMap[s])
-      );
-      const otherList=symbols.filter(
-        s=>!primeSymbols.includes(s)&&marketMeta[s]&&isFinite(markMap[s])&&isFinite(entryMap[s])
-      );
-      const planned=[...mainList, ...otherList].slice(0, TRADE_COUNT);
-
-      function lossLeverageOptionsFor(sym){
-        const liveMark=markMap[sym];
-        const entry=entryMap[sym];
-        if(!isFinite(liveMark) || !isFinite(entry) || entry <= 0) return [];
-        const moveFrac = Math.abs(liveMark - entry) / Math.max(entry, 1e-9);
-        if(!isFinite(moveFrac) || moveFrac <= 0.0005) return [];
-        return LEV_SET.filter(lev=>{
-          const lossFrac = moveFrac * lev;
-          return lossFrac >= LOSS_FRACTION_MIN && lossFrac <= LOSS_FRACTION_MAX;
-        });
-      }
-
-      const lossTradeCount = Math.min(planned.length, randInt(SMALL_LOSS_MIN_COUNT, SMALL_LOSS_MAX_COUNT));
-      const lossCandidates = planned.filter(sym=>lossLeverageOptionsFor(sym).length > 0);
-      const lossPick = new Set(shuffle(lossCandidates.slice()).slice(0, lossTradeCount));
-      const winTradesCount = Math.max(1, planned.length - lossPick.size);
-      const targetUnrealSeed = randInt(UNREAL_MIN, UNREAL_MAX);
-      const targetLossAbs = round2(
-        planned.filter(sym=>lossPick.has(sym)).reduce((sum, sym)=>{
-          const levs = lossLeverageOptionsFor(sym);
-          if(!levs.length) return sum;
-          const entry = entryMap[sym];
-          const liveMark = markMap[sym];
-          const moveFrac = Math.abs(liveMark - entry) / Math.max(entry, 1e-9);
-          const lev = levs[Math.floor(Math.random() * levs.length)];
-          const usedMarginGuess = MARGIN_MIN + Math.random() * (MARGIN_MAX - MARGIN_MIN);
-          return sum + (usedMarginGuess * moveFrac * lev);
-        }, 0)
-      );
-      const targetProfitPool = targetUnrealSeed + targetLossAbs;
-      const avgWinTarget = targetProfitPool / winTradesCount;
-
-      function desiredProfitPnl(){
-        const skew = 0.72 + Math.random() * 0.68;
-        return round2(avgWinTarget * skew);
-      }
-
-      for(let i=0;i<planned.length;i++){
-        const sym=planned[i];
-        const liveMark=markMap[sym];
-        if(!isFinite(liveMark)) continue;
-        const entryRaw=entryMap[sym];
-        if(!isFinite(entryRaw) || entryRaw <= 0) continue;
-        const entry=quantizeToTick(entryRaw, getMeta(sym).tickSize);
-        const moveAbs = Math.abs(liveMark - entry);
-        const moveFrac = moveAbs / Math.max(entry, 1e-9);
-        if(!isFinite(moveFrac) || moveFrac <= 0.0005) continue;
-
-        const isLossTrade = lossPick.has(sym);
-        const preferredWinningSide = (liveMark >= entry) ? 'LONG' : 'SHORT';
-        const side = isLossTrade
-          ? (preferredWinningSide === 'LONG' ? 'SHORT' : 'LONG')
-          : preferredWinningSide;
-        const lossLevOptions = lossLeverageOptionsFor(sym);
-        let desiredPnl;
-        let pickedLeverage = LEV_SET[LEV_SET.length - 1];
-        let usedMargin = MARGIN_MIN;
-
-        if(isLossTrade && lossLevOptions.length){
-          pickedLeverage = lossLevOptions[Math.floor(Math.random() * lossLevOptions.length)];
-          const lossFrac = moveFrac * pickedLeverage;
-          usedMargin = round2(MARGIN_MIN + Math.random() * (MARGIN_MAX - MARGIN_MIN));
-          desiredPnl = -1 * round2(usedMargin * lossFrac);
-        } else {
-          desiredPnl = desiredProfitPnl();
-          for(const lev of LEV_SET){
-            const neededMargin = Math.abs(desiredPnl) / Math.max(moveFrac * lev, 1e-9);
-            if(neededMargin >= MARGIN_MIN && neededMargin <= MARGIN_MAX){
-              pickedLeverage = lev;
-              usedMargin = neededMargin;
-              break;
-            }
-          }
-          if(usedMargin < MARGIN_MIN || usedMargin > MARGIN_MAX){
-            const fallbackLev = LEV_SET.slice().sort((a,b)=>b-a)[0];
-            pickedLeverage = fallbackLev;
-            usedMargin = Math.max(MARGIN_MIN, Math.min(MARGIN_MAX, Math.abs(desiredPnl) / Math.max(moveFrac * pickedLeverage, 1e-9)));
-          }
-        }
-
-        const m=getMeta(sym);
-        let qtyRaw=qtyFrom(usedMargin, pickedLeverage, entry);
-        let qty=quantizeDownToStep(qtyRaw, m.stepSize);
-        if(qty < m.minQty) qty = m.minQty;
-        usedMargin = Math.max(MARGIN_MIN, Math.min(MARGIN_MAX, (qty * entry) / pickedLeverage));
-
-        const marginMode = Math.random() < 0.58 ? 'Cross' : 'Isolated';
-        const effMargin = marginMode === 'Isolated'
-          ? usedMargin
-          : usedMargin * (1.10 + Math.random() * 0.55);
-
+      const symbols = shuffle(allSymbols.slice()).slice(0, randInt(TRADE_MIN, TRADE_MAX));
+      for(const sym of symbols){
+        const mark = markMap[sym];
+        if(!isFinite(mark)) continue;
+        const leverage = LEV_SET[randInt(0, LEV_SET.length-1)];
+        const move = 0.005 + Math.random() * 0.03;
+        const side = Math.random() > 0.5 ? 'LONG' : 'SHORT';
+        const entry = side === 'LONG' ? mark * (1 - move) : mark * (1 + move);
+        const usedMargin = randInt(MARGIN_MIN, MARGIN_MAX);
+        const qty = quantizeDownToStep(qtyFrom(usedMargin, leverage, entry), getMeta(sym).stepSize);
+        const effMargin = usedMargin * (1.1 + Math.random()*0.3);
         const panelState = createPanel({
-          sym, leverage: pickedLeverage, entry, mark: liveMark,
-          usedMargin, effMargin, mmr: getMaintRate(sym),
-          qty, side, marginMode
+          sym, leverage, entry, mark, usedMargin, effMargin, mmr: getMaintRate(sym), qty: Math.max(qty, getMeta(sym).minQty || 0.001), side, marginMode:'Cross'
         });
-
         trades.push(panelState);
         feedDiv.appendChild(panelState.node);
       }
-
-      shuffleFeed();
       sizeFeed();
     }
 
     function recalcAccountTopFromTrades(){
       let sum=0;
       for(const t of trades){
-        const pnl = t.side==='LONG'
-          ? upnlLong(t.mark, t.entry, t.qty)
-          : upnlShort(t.mark, t.entry, t.qty);
+        const pnl = t.side==='LONG' ? upnlLong(t.mark, t.entry, t.qty) : upnlShort(t.mark, t.entry, t.qty);
         sum += pnl;
       }
       unrealizedSum = round2(sum);
@@ -2166,38 +1499,17 @@
       refreshTop();
     }
 
-    function enforceTradeCount(){
-      if(trades.length > TRADE_MAX){
-        const extra = trades.length - TRADE_MAX;
-        for(let i=0;i<extra;i++){
-          const t = trades.pop();
-          t.node.remove();
-        }
-      }
-    }
-
-    function clampTradeMargins(){
-      for(const t of trades){
-        if(t.usedMargin < MARGIN_MIN) t.usedMargin = MARGIN_MIN;
-        if(t.usedMargin > MARGIN_MAX) t.usedMargin = MARGIN_MAX;
-        if(t.effMargin < t.usedMargin) t.effMargin = t.usedMargin;
-      }
-    }
-
     function connectFuturesMarkWS(){
       const WS_URL='wss://fstream.binance.com/ws/!markPrice@arr';
       let ws=new WebSocket(WS_URL);
       ws.onmessage=(evt)=>{
         let data;
-        try{ data=JSON.parse(evt.data);}
-        catch{return;}
+        try{ data=JSON.parse(evt.data);}catch{return;}
         if(!Array.isArray(data)) return;
         let touched=false;
         for(const o of data){
           const sym=o.s;
-          const priceStr=o.p;
-          if(!sym || priceStr===undefined) continue;
-          const mp=parseFloat(priceStr);
+          const mp=parseFloat(o.p);
           if(!isFinite(mp)) continue;
           for(const t of trades){
             if(t.sym===sym){
@@ -2212,14 +1524,6 @@
       ws.onclose=()=> setTimeout(connectFuturesMarkWS, 2000);
       ws.onerror=()=>{ try{ ws.close(); }catch{} };
     }
-
-    function setBottomInset(){
-      const nav = document.getElementById('bottomNav');
-      const h = nav ? Math.max(56, Math.ceil(nav.getBoundingClientRect().height)) : 64;
-      document.documentElement.style.setProperty('--bottom-nav-h', h + 'px');
-    }
-    window.addEventListener('resize', setBottomInset);
-    document.addEventListener('DOMContentLoaded', setBottomInset);
 
     const pnlEls = {
       backdrop: document.getElementById('pnlBackdrop'),
@@ -2241,51 +1545,11 @@
       return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
     }
 
-    function formatTimeWithTinyMonthOne(ts){
-      const m = ts.match(/^(\d{4})-(\d{2})-(\d{2}) (.+)$/);
-      if(!m) return ts;
-      const [, Y, MM, DD, rest] = m;
-      const mm = MM.replace(/1/g, '<span class="month-one">1</span>');
-      return `${Y}-${mm}-${DD} ${rest}`;
-    }
-
-    function applyUSDTVisibility(mode){
-      const showUSDT = mode !== 'ROI';
-      document.querySelectorAll('.pnl-card .usdt').forEach(el=>{
-        el.style.display = showUSDT ? '' : 'none';
-      });
-    }
-
-    function syncCloneSlides(payload){
-      const cards = Array.from(document.querySelectorAll('.pnl-card'))
-        .filter(c=>c.id!=='pnlCard');
-      cards.forEach(card=>{
-        const set = (sel, val, html=false) => {
-          const el = card.querySelector(sel);
-          if(!el) return;
-          if(html) el.innerHTML = val;
-          else el.textContent = val;
-        };
-        set('.js-user', payload.user);
-        set('.js-time', payload.timeHTML, true);
-        set('.js-title', payload.title);
-        set('.js-side', payload.sideText);
-        card.querySelector('.js-side').style.color = payload.sideColor;
-        set('.js-lev', payload.lev);
-        set('.js-pnl', payload.pnlText);
-        set('.js-entry', payload.entry);
-        set('.js-last', payload.last);
-        if (window.__wrapOnes) window.__wrapOnes(card);
-      });
-    }
-
     function openPNLModal(trade){
-      setBottomInset();
       currentSharedTrade = trade;
       document.body.classList.add('pnl-open');
       pnlEls.user.textContent = usernameStatic;
-      const ts = nowStamp();
-      pnlEls.time.innerHTML = formatTimeWithTinyMonthOne(ts);
+      pnlEls.time.textContent = nowStamp();
       updatePNLCardFromTrade(trade);
       pnlEls.backdrop.classList.add('open');
       pnlEls.backdrop.setAttribute('aria-hidden','false');
@@ -2297,23 +1561,31 @@
       document.body.classList.remove('pnl-open');
       currentSharedTrade = null;
     }
-    pnlEls.backdrop.addEventListener('click', (e)=>{
-      if(e.target === pnlEls.backdrop) closePNLModal();
-    });
+    pnlEls.backdrop.addEventListener('click', (e)=>{ if(e.target === pnlEls.backdrop) closePNLModal(); });
 
     document.querySelectorAll('input[name="infoMode"]').forEach(r=>{
-      r.addEventListener('change', ()=>{
-        const mode = (document.querySelector('input[name="infoMode"]:checked')||{}).value || 'PNL';
-        applyUSDTVisibility(mode);
-        if(currentSharedTrade) updatePNLCardFromTrade(currentSharedTrade);
-      });
+      r.addEventListener('change', ()=>{ if(currentSharedTrade) updatePNLCardFromTrade(currentSharedTrade); });
     });
+
+    function syncCloneSlides(payload){
+      const cards = Array.from(document.querySelectorAll('.pnl-card')).filter(c=>c.id!=='pnlCard');
+      cards.forEach(card=>{
+        const set = (sel, val) => { const el = card.querySelector(sel); if(el) el.textContent = val; };
+        set('.js-user', payload.user);
+        set('.js-time', payload.time);
+        set('.js-title', payload.title);
+        set('.js-side', payload.sideText);
+        const sideEl = card.querySelector('.js-side'); if(sideEl) sideEl.style.color = payload.sideColor;
+        set('.js-lev', payload.lev);
+        set('.js-pnl', payload.pnlText);
+        set('.js-entry', payload.entry);
+        set('.js-last', payload.last);
+      });
+    }
 
     function updatePNLCardFromTrade(t){
       if(!t) return;
-      const pnl = t.side === 'LONG'
-        ? upnlLong(t.mark, t.entry, t.qty)
-        : upnlShort(t.mark, t.entry, t.qty);
+      const pnl = t.side === 'LONG' ? upnlLong(t.mark, t.entry, t.qty) : upnlShort(t.mark, t.entry, t.qty);
       const roi = roiPct(pnl, t.usedMargin);
       const sideTxt = t.side === 'LONG' ? 'Long' : 'Short';
 
@@ -2324,23 +1596,18 @@
 
       const mode = (document.querySelector('input[name="infoMode"]:checked')||{}).value || 'PNL';
       let pnlText;
-      if(mode === 'PNL') {
-        pnlText = formatSignedProfit(t.sym, pnl);
-      } else if(mode === 'ROI') {
-        pnlText = (roi>=0?'+':'') + toFixedSafe(roi,2) + '%';
-      } else {
-        pnlText = `${formatSignedProfit(t.sym, pnl)}  (${(roi>=0?'+':'')+toFixedSafe(roi,2)}%)`;
-      }
+      if(mode === 'PNL') pnlText = formatSignedProfit(t.sym, pnl);
+      else if(mode === 'ROI') pnlText = (roi>=0?'+':'') + toFixedSafe(roi,2) + '%';
+      else pnlText = `${formatSignedProfit(t.sym, pnl)}  (${(roi>=0?'+':'')+toFixedSafe(roi,2)}%)`;
+
       pnlEls.pnl.textContent = pnlText;
       pnlEls.pnl.parentElement.style.color = pnl >= 0 ? '#0ecb81' : '#e04b4a';
       pnlEls.entry.textContent = formatPrice(t.sym, t.entry);
       pnlEls.last.textContent  = formatPrice(t.sym, t.mark);
 
-      applyUSDTVisibility(mode);
-
-      const payload = {
+      syncCloneSlides({
         user: usernameStatic,
-        timeHTML: pnlEls.time.innerHTML,
+        time: pnlEls.time.textContent,
         title: pnlEls.title.textContent,
         sideText: sideTxt,
         sideColor: t.side === 'LONG' ? '#0ecb81' : '#ff6b6b',
@@ -2348,27 +1615,17 @@
         pnlText,
         entry: pnlEls.entry.textContent,
         last: pnlEls.last.textContent
-      };
-      syncCloneSlides(payload);
-
-      if (window.__wrapOnes)
-        window.__wrapOnes(document.getElementById('pnlCard'));
+      });
     }
 
     function setupSaveOnlyCard() {
-      const saveBtn = Array.from(
-        document.querySelectorAll('#pnlActions .action')
-      ).find(a => a.getAttribute('title') === 'Save');
+      const saveBtn = Array.from(document.querySelectorAll('#pnlActions .action')).find(a => a.getAttribute('title') === 'Save');
       if(!saveBtn) return;
       saveBtn.addEventListener('click', async () => {
         const card = document.getElementById('pnlCard');
         if(!card) return;
         try{
-          const canvas = await html2canvas(card, {
-            useCORS:true,
-            scale:2,
-            backgroundColor:null
-          });
+          const canvas = await html2canvas(card, { useCORS:true, scale:2, backgroundColor:null });
           const dataURL = canvas.toDataURL('image/png');
           const a = document.createElement('a');
           a.href = dataURL;
@@ -2376,35 +1633,26 @@
           document.body.appendChild(a);
           a.click();
           a.remove();
-        }catch(e){
-          alert('Save failed. Please try again.');
-        }
+        }catch(e){ alert('Save failed. Please try again.'); }
       });
     }
 
     const track = document.getElementById('pnlTrack');
     const carousel = document.getElementById('pnlCarousel');
     let slideIndex = 0;
-    let startX = 0, currentX = 0, isDown = false;
+    let startX = 0, isDown = false;
 
     function setSlide(i, instant=false){
       slideIndex = Math.max(0, Math.min(2, i));
       const w = carousel.getBoundingClientRect().width;
       track.style.transition = instant ? 'none' : 'transform .25s ease';
       track.style.transform = `translateX(${-slideIndex * w}px)`;
-      if(instant){
-        requestAnimationFrame(()=> track.style.transition = 'transform .25s ease');
-      }
+      if(instant) requestAnimationFrame(()=> track.style.transition = 'transform .25s ease');
     }
-
-    function onDown(e){
-      isDown = true;
-      carousel.classList.add('grabbing');
-      startX = ('touches' in e) ? e.touches[0].clientX : e.clientX;
-    }
+    function onDown(e){ isDown = true; startX = ('touches' in e) ? e.touches[0].clientX : e.clientX; }
     function onMove(e){
       if(!isDown) return;
-      currentX = ('touches' in e) ? e.touches[0].clientX : e.clientX;
+      const currentX = ('touches' in e) ? e.touches[0].clientX : e.clientX;
       const dx = currentX - startX;
       const w = carousel.getBoundingClientRect().width;
       const base = -slideIndex * w;
@@ -2414,18 +1662,13 @@
     function onUp(){
       if(!isDown) return;
       isDown = false;
-      carousel.classList.remove('grabbing');
       const w = carousel.getBoundingClientRect().width;
       const m = track.style.transform.match(/-?\d+(\.\d+)?px/);
       const tx = m ? parseFloat(m[0]) : 0;
       const moved = tx + slideIndex * w;
-      if (Math.abs(moved) > w * 0.2){
-        setSlide(slideIndex + (moved < 0 ? 1 : -1));
-      } else {
-        setSlide(slideIndex);
-      }
+      if (Math.abs(moved) > w * 0.2) setSlide(slideIndex + (moved < 0 ? 1 : -1));
+      else setSlide(slideIndex);
     }
-
     carousel.addEventListener('mousedown', onDown);
     window.addEventListener('mousemove', onMove);
     window.addEventListener('mouseup', onUp);
@@ -2433,7 +1676,6 @@
     carousel.addEventListener('touchmove', onMove, {passive:true});
     carousel.addEventListener('touchend', onUp);
 
-    /* ===== HISTORY MODAL LOGIC ===== */
     const historyBackdrop = document.getElementById('historyBackdrop');
     const historyCloseBtn = document.getElementById('historyCloseBtn');
     const realizedPnlRow = document.getElementById('pnl');
@@ -2443,18 +1685,20 @@
       historyBackdrop.classList.add('open');
       historyBackdrop.setAttribute('aria-hidden', 'false');
       syncHistoryFromTop();
+      renderCalendar();
     }
     function closeHistoryModal(){
       document.body.classList.remove('history-open');
       historyBackdrop.classList.remove('open');
       historyBackdrop.setAttribute('aria-hidden', 'true');
     }
-
+    function handleTopBackAction(){
+      if (window.history.length > 1) window.history.back();
+      else closeHistoryModal();
+    }
     realizedPnlRow.addEventListener('click', openHistoryModal);
-    historyCloseBtn.addEventListener('click', closeHistoryModal);
-    historyBackdrop.addEventListener('click', (e)=>{
-      if(e.target === historyBackdrop) closeHistoryModal();
-    });
+    historyCloseBtn.addEventListener('click', handleTopBackAction);
+    historyBackdrop.addEventListener('click', (e)=>{ if(e.target === historyBackdrop) closeHistoryModal(); });
 
     function mulberry32(a){
       return function(){
@@ -2464,78 +1708,172 @@
         return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
       }
     }
-    function randBetween(rng, min, max){
-      return min + (max - min) * rng();
-    }
-    function histFmtMoney(n){
+    function randBetween(rng, min, max){ return min + (max - min) * rng(); }
+    function histFmtMoneyPlain(n){ return `${n.toLocaleString("en-US", {minimumFractionDigits:2, maximumFractionDigits:2})}`; }
+    function histFmtSignedMoney(n){
       const sign = n >= 0 ? "+" : "-";
-      const abs = Math.abs(n);
-      return `${sign}${abs.toFixed(2)}`;
+      return `${sign}${Math.abs(n).toLocaleString("en-US", {minimumFractionDigits:2, maximumFractionDigits:2})}`;
     }
     function histFmtPct(n){
       const sign = n >= 0 ? "+" : "-";
       return `${sign}${Math.abs(n).toFixed(2)}%`;
     }
-    function clamp(n, a, b){
-      return Math.max(a, Math.min(b, n));
-    }
-    function yyyymm(y, m){
-      return `${y}-${String(m).padStart(2,"0")}`;
-    }
+    function yyyymm(y, m){ return `${y}-${String(m).padStart(2,"0")}`; }
 
-    function setHistoryText(el, value, positive=true, neutral=false){
-      el.classList.remove('history-pnl--pos','history-pnl--neg','history-pnl--neutral');
-      if(neutral) el.classList.add('history-pnl--neutral');
-      else el.classList.add(positive ? 'history-pnl--pos' : 'history-pnl--neg');
+    function setHistoryText(el, value, positive=true){
+      el.classList.remove('history-pnl--pos','history-pnl--neg');
+      el.classList.add(positive ? 'history-pnl--pos' : 'history-pnl--neg');
       el.innerHTML = value;
     }
 
-    function syncHistoryFromTop(){
-      const seed = (Date.now() ^ Math.floor(Math.random() * 1e9)) >>> 0;
+    let historySummary = null;
+    const todayLocal = new Date();
+    const currentYear = todayLocal.getFullYear();
+    const currentMonth = todayLocal.getMonth() + 1;
+    const currentDay = todayLocal.getDate();
+
+    function generateMonthData(y, m){
+      const seed = (y * 1000 + m * 77 + 12345) >>> 0;
       const rng = mulberry32(seed);
+      const dim = new Date(y, m, 0).getDate();
 
-      const todayAmt = Math.max(1, round2(realizedTodayUSD || randBetween(rng, 200, 1000)));
-      const todayPct = Math.max(0.01, round2(realizedTodayPct || randBetween(rng, 0.20, 3.90)));
+      const profitDays = new Map();
+      const lossDays = new Map();
 
-      const p7Amt = Math.round(clamp(todayAmt * randBetween(rng, 6, 14), 600, 6000));
-      const p30Amt = Math.round(clamp(todayAmt * randBetween(rng, 14, 36), 1500, 15000));
-      const lifetimeNet = Math.round(clamp(p30Amt * randBetween(rng, 4, 8), 45000, 65000));
+      const isCurrentMonth = (y === currentYear && m === currentMonth);
+      const maxDay = isCurrentMonth ? currentDay : dim;
 
-      const totalProfit = Math.round(lifetimeNet / 0.80);
-      const totalLoss = Math.round(totalProfit * 0.20);
-      const p7Pct = round2(clamp(todayPct * randBetween(rng, 2.2, 4.2), 1.00, 9.50));
-      const p30Pct = round2(clamp(todayPct * randBetween(rng, 4.0, 11.0), 2.50, 35.00));
+      const lossCount = randInt(2, 3);
+      const possibleDays = Array.from({length: maxDay}, (_,i)=>i+1);
 
-      setHistoryText(document.getElementById("histTodayPct"), histFmtPct(todayPct), true);
-      setHistoryText(document.getElementById("histTodayAmt"), `${histFmtMoney(todayAmt)} <span class="history-unit">USD</span>`, true);
+      shuffle(possibleDays);
+      const chosenLosses = possibleDays.slice(0, lossCount).sort((a,b)=>a-b);
 
-      setHistoryText(document.getElementById("histP7Pct"), histFmtPct(p7Pct), true);
-      setHistoryText(document.getElementById("histP7Amt"), `${histFmtMoney(p7Amt)} <span class="history-unit">USD</span>`, true);
+      chosenLosses.forEach(day=>{
+        lossDays.set(day, -round2(randBetween(rng, 25, 50)));
+      });
 
-      setHistoryText(document.getElementById("histP30Pct"), histFmtPct(p30Pct), true);
-      setHistoryText(document.getElementById("histP30Amt"), `${histFmtMoney(p30Amt)} <span class="history-unit">USD</span>`, true);
+      for(let d=1; d<=maxDay; d++){
+        if(lossDays.has(d)) continue;
+        profitDays.set(d, round2(randBetween(rng, 100, 1000)));
+      }
 
-      setHistoryText(document.getElementById("histLifeAmt"), `+${lifetimeNet.toLocaleString("en-US")}`, true);
-
-      document.getElementById("histTotalProfit").innerHTML =
-        `${totalProfit.toLocaleString("en-US", {minimumFractionDigits:2, maximumFractionDigits:2})} <span class="history-unit">USD</span>`;
-
-      document.getElementById("histTotalLoss").innerHTML =
-        `${totalLoss.toLocaleString("en-US", {minimumFractionDigits:2, maximumFractionDigits:2})} <span class="history-unit">USD</span>`;
-
-      document.getElementById("histNetProfit").innerHTML =
-        `+${lifetimeNet.toLocaleString("en-US", {minimumFractionDigits:2, maximumFractionDigits:2})} <span class="history-unit">USD</span>`;
+      return { profitDays, lossDays, dim, maxDay, isCurrentMonth };
     }
 
-    const HISTORY_MONTHS = 12;
-    const START_YEAR = 2026;
-    const START_MONTH = 3;
+    function buildYearSummary(){
+      const months = [];
+      let totalProfit = 0;
+      let totalLossAbs = 0;
+      const start = new Date(currentYear, currentMonth - 12, 1);
+
+      for(let i=0;i<12;i++){
+        const d = new Date(start.getFullYear(), start.getMonth() + i, 1);
+        const y = d.getFullYear();
+        const m = d.getMonth() + 1;
+        const monthData = generateMonthData(y, m);
+
+        for(const v of monthData.profitDays.values()) totalProfit += v;
+        for(const v of monthData.lossDays.values()) totalLossAbs += Math.abs(v);
+
+        months.push({ y, m, ...monthData });
+      }
+
+      const targetProfit = round2(randBetween(mulberry32(Date.now() >>> 0), 15000, 20000));
+      const scale = totalProfit > 0 ? targetProfit / totalProfit : 1;
+
+      months.forEach(mon=>{
+        mon.profitDays = new Map([...mon.profitDays.entries()].map(([k,v])=>[k, round2(v * scale)]));
+        mon.lossDays = new Map([...mon.lossDays.entries()].map(([k,v])=>[k, round2(v)]));
+      });
+
+      /* UPDATED: sync Today's Realized PNL to the last day of the report */
+      const currentMon = months.find(x => x.y === currentYear && x.m === currentMonth);
+      if (currentMon) {
+        currentMon.profitDays.delete(currentDay);
+        currentMon.lossDays.delete(currentDay);
+
+        const syncedTodayValue = round2(realizedTodayUSD);
+        if (syncedTodayValue >= 0) {
+          currentMon.profitDays.set(currentDay, syncedTodayValue);
+        } else {
+          currentMon.lossDays.set(currentDay, syncedTodayValue);
+        }
+      }
+
+      totalProfit = 0;
+      totalLossAbs = 0;
+      months.forEach(mon=>{
+        for(const v of mon.profitDays.values()) totalProfit += v;
+        for(const v of mon.lossDays.values()) totalLossAbs += Math.abs(v);
+      });
+
+      totalProfit = round2(totalProfit);
+      totalLossAbs = round2(totalLossAbs);
+      const netProfit = round2(totalProfit - totalLossAbs);
+
+      return { months, totalProfit, totalLossAbs, netProfit };
+    }
+
+    function syncHistoryFromTop(){
+      historySummary = buildYearSummary();
+
+      const currentMon = historySummary.months.find(x=>x.y===currentYear && x.m===currentMonth);
+      let todayAmt = 0;
+      if(currentMon){
+        todayAmt = currentMon.lossDays.get(currentDay) || currentMon.profitDays.get(currentDay) || 0;
+      }
+
+      const last7Values = [];
+      for(let back=0; back<7; back++){
+        const d = new Date(currentYear, currentMonth - 1, currentDay - back);
+        const mon = historySummary.months.find(x=>x.y===d.getFullYear() && x.m===d.getMonth()+1);
+        if(!mon) continue;
+        const dayVal = mon.lossDays.get(d.getDate()) || mon.profitDays.get(d.getDate()) || 0;
+        last7Values.push(dayVal);
+      }
+      const p7Amt = round2(last7Values.reduce((a,b)=>a+b,0));
+
+      const last30Values = [];
+      for(let back=0; back<30; back++){
+        const d = new Date(currentYear, currentMonth - 1, currentDay - back);
+        const mon = historySummary.months.find(x=>x.y===d.getFullYear() && x.m===d.getMonth()+1);
+        if(!mon) continue;
+        const dayVal = mon.lossDays.get(d.getDate()) || mon.profitDays.get(d.getDate()) || 0;
+        last30Values.push(dayVal);
+      }
+      const p30Amt = round2(last30Values.reduce((a,b)=>a+b,0));
+
+      const todayPct = walletBalance > 0 ? round2((todayAmt / walletBalance) * 100) : 0;
+      const p7Pct = walletBalance > 0 ? round2((p7Amt / walletBalance) * 100) : 0;
+      const p30Pct = walletBalance > 0 ? round2((p30Amt / walletBalance) * 100) : 0;
+
+      setHistoryText(document.getElementById("histTodayPct"), histFmtPct(todayPct), todayAmt >= 0);
+      setHistoryText(document.getElementById("histTodayAmt"), `${histFmtSignedMoney(todayAmt)} <span class="history-unit">USD</span>`, todayAmt >= 0);
+
+      setHistoryText(document.getElementById("histP7Pct"), histFmtPct(p7Pct), p7Amt >= 0);
+      setHistoryText(document.getElementById("histP7Amt"), `${histFmtSignedMoney(p7Amt)} <span class="history-unit">USD</span>`, p7Amt >= 0);
+
+      setHistoryText(document.getElementById("histP30Pct"), histFmtPct(p30Pct), p30Amt >= 0);
+      setHistoryText(document.getElementById("histP30Amt"), `${histFmtSignedMoney(p30Amt)} <span class="history-unit">USD</span>`, p30Amt >= 0);
+
+      setHistoryText(document.getElementById("histLifeAmt"), `+${historySummary.netProfit.toLocaleString("en-US", {minimumFractionDigits:2, maximumFractionDigits:2})}`, true);
+
+      document.getElementById("histTotalProfit").innerHTML =
+        `${histFmtMoneyPlain(historySummary.totalProfit)} <span class="history-unit">USD</span>`;
+
+      document.getElementById("histTotalLoss").innerHTML =
+        `${histFmtMoneyPlain(historySummary.totalLossAbs)} <span class="history-unit">USD</span>`;
+
+      document.getElementById("histNetProfit").innerHTML =
+        `${historySummary.netProfit >= 0 ? '+' : '-'}${Math.abs(historySummary.netProfit).toLocaleString("en-US", {minimumFractionDigits:2, maximumFractionDigits:2})} <span class="history-unit">USD</span>`;
+    }
 
     const months = [];
-    for(let i = HISTORY_MONTHS - 1; i >= 0; i--){
-      const d = new Date(Date.UTC(START_YEAR, START_MONTH - 1, 1));
-      d.setUTCMonth(d.getUTCMonth() - i);
-      months.push({ y: d.getUTCFullYear(), m: d.getUTCMonth() + 1 });
+    const startMonthDate = new Date(currentYear, currentMonth - 12, 1);
+    for(let i=0;i<12;i++){
+      const d = new Date(startMonthDate.getFullYear(), startMonthDate.getMonth()+i, 1);
+      months.push({ y:d.getFullYear(), m:d.getMonth()+1 });
     }
 
     let monthIndex = months.length - 1;
@@ -2544,81 +1882,33 @@
     const prevBtn = document.getElementById("histPrevMonth");
     const nextBtn = document.getElementById("histNextMonth");
 
-    function daysInMonthUTC(y, m){
-      return new Date(Date.UTC(y, m, 0)).getUTCDate();
-    }
-
-    function firstDowUTC(y, m){
-      return new Date(Date.UTC(y, m - 1, 1)).getUTCDay();
-    }
-
-    function buildMonthData(y, m){
-      const seed = ((Date.now() + y * 100 + m) ^ Math.floor(Math.random() * 1e9)) >>> 0;
-      const rng = mulberry32(seed);
-
-      const dim = daysInMonthUTC(y, m);
-      const profitCount = (rng() < 0.5) ? 27 : 28;
-      const lossCount = dim - profitCount;
-
-      const allDays = Array.from({length: dim}, (_, i) => i + 1);
-      for(let i = allDays.length - 1; i > 0; i--){
-        const j = Math.floor(rng() * (i + 1));
-        [allDays[i], allDays[j]] = [allDays[j], allDays[i]];
-      }
-
-      const lossDays = new Set(allDays.slice(0, lossCount));
-      const map = {};
-
-      for(let d = 1; d <= dim; d++){
-        if(lossDays.has(d)){
-          map[d] = -randBetween(rng, 10, 50);
-        }else{
-          map[d] = randBetween(rng, 200, 1000);
-        }
-      }
-      return map;
-    }
+    function daysInMonthUTC(y, m){ return new Date(Date.UTC(y, m, 0)).getUTCDate(); }
+    function firstDowUTC(y, m){ return new Date(Date.UTC(y, m - 1, 1)).getUTCDay(); }
 
     function renderCalendar(){
+      if(!historySummary) historySummary = buildYearSummary();
+
       const {y, m} = months[monthIndex];
       monthLabel.textContent = yyyymm(y, m);
-
       prevBtn.disabled = (monthIndex === 0);
       nextBtn.disabled = (monthIndex === months.length - 1);
 
+      const mon = historySummary.months.find(x=>x.y===y && x.m===m);
       const dim = daysInMonthUTC(y, m);
       const firstDow = firstDowUTC(y, m);
-      const data = buildMonthData(y, m);
 
       calGrid.innerHTML = "";
 
-      for(let i = 0; i < firstDow; i++){
+      for(let i=0; i<firstDow; i++){
         const empty = document.createElement("div");
         empty.className = "history-day history-day--empty";
         empty.setAttribute("aria-hidden", "true");
         calGrid.appendChild(empty);
       }
 
-      for(let d = 1; d <= dim; d++){
-        const v = data[d];
+      for(let d=1; d<=dim; d++){
         const btn = document.createElement("button");
         btn.type = "button";
-
-        let dayClass = "history-day ";
-        let valClass = "history-day__val ";
-
-        if(v > 0){
-          dayClass += "history-day--pos";
-          valClass += "history-pnl--pos";
-        }else if(v < 0){
-          dayClass += "history-day--neg";
-          valClass += "history-pnl--neg";
-        }else{
-          dayClass += "history-day--zero";
-          valClass += "history-pnl--neutral";
-        }
-
-        btn.className = dayClass;
         btn.setAttribute("role", "gridcell");
 
         const num = document.createElement("span");
@@ -2626,16 +1916,36 @@
         num.textContent = String(d);
 
         const val = document.createElement("span");
-        val.className = valClass;
-        val.textContent = (v > 0 ? "+" : v < 0 ? "-" : "") + Math.abs(v).toFixed(2);
+        val.className = "history-day__val";
+
+        let value = null;
+        if(mon.lossDays.has(d)) value = mon.lossDays.get(d);
+        else if(mon.profitDays.has(d)) value = mon.profitDays.get(d);
+
+        const isPending = d > mon.maxDay;
+        if(isPending){
+          btn.className = "history-day history-day--pending";
+          val.textContent = "";
+          btn.appendChild(num);
+          btn.appendChild(val);
+          btn.setAttribute("aria-label", `${d} ${yyyymm(y, m)}`);
+          calGrid.appendChild(btn);
+          continue;
+        }
+
+        if(value < 0){
+          btn.className = "history-day history-day--neg";
+          val.classList.add("history-pnl--neg");
+          val.textContent = `-${Math.abs(value).toFixed(2)}`;
+        } else {
+          btn.className = "history-day history-day--pos";
+          val.classList.add("history-pnl--pos");
+          val.textContent = `+${Math.abs(value).toFixed(2)}`;
+        }
 
         btn.appendChild(num);
         btn.appendChild(val);
-
-        const label = `${d} ${yyyymm(y, m)}, ${v >= 0 ? "profit" : "loss"} ${Math.abs(v).toFixed(2)} USD`;
-        btn.setAttribute("aria-label", label);
-        btn.title = label;
-
+        btn.setAttribute("aria-label", `${d} ${yyyymm(y, m)}, ${value >= 0 ? "profit" : "loss"} ${Math.abs(value).toFixed(2)} USD`);
         calGrid.appendChild(btn);
       }
 
@@ -2658,7 +1968,6 @@
         renderCalendar();
       }
     });
-
     nextBtn.addEventListener("click", () => {
       if(monthIndex < months.length - 1){
         monthIndex++;
@@ -2668,24 +1977,8 @@
 
     (async function init(){
       sizeFeed();
-      setBottomInset();
       initPhotoSlots();
-
-      try {
-        if (FORCE_NEW_SESSION) localStorage.removeItem(STORAGE_TRADES_KEY);
-      } catch {}
-
-      await loadExchangeMeta();
-
-      try{
-        const res=await fetch('https://fapi.binance.com/fapi/v1/premiumIndex');
-        await res.json();
-      }catch{}
-
-      await seedWithThreeMonthEntries();
-
-      enforceTradeCount();
-      clampTradeMargins();
+      await seedTrades();
 
       recalcAccountTopFromTrades();
       const seededUnreal = unrealizedSum;
@@ -2694,87 +1987,14 @@
       targetMarginBalance = round2(walletBalance + seededUnreal);
 
       realizedTodayUSD = randInt(DAILY_PNL_MIN, DAILY_PNL_MAX);
-      realizedTodayPct = walletBalance > 0
-        ? (realizedTodayUSD / walletBalance) * 100
-        : 0;
+      realizedTodayPct = walletBalance > 0 ? (realizedTodayUSD / walletBalance) * 100 : 0;
       refreshTop();
 
       connectFuturesMarkWS();
       setupSaveOnlyCard();
       setSlide(0, true);
-      renderCalendar();
       syncHistoryFromTop();
-
-      applyUSDTVisibility(
-        (document.querySelector('input[name="infoMode"]:checked')||{}).value || 'PNL'
-      );
-    })();
-
-    document.getElementById("amount").textContent = "Loading…";
-    document.getElementById("walletValue").textContent = "Loading…";
-    document.getElementById("unrealizedValue").textContent = "Loading…";
-    document.getElementById("realizedSpan").textContent = "Loading…";
-  </script>
-
-  <script>
-    (function(){
-      function wrapOnes(root){
-        if (!root) return;
-        const walker = document.createTreeWalker(
-          root,
-          NodeFilter.SHOW_TEXT,
-          {
-            acceptNode: (node) => {
-              if (!node.nodeValue || node.nodeValue.indexOf('1') === -1)
-                return NodeFilter.FILTER_REJECT;
-              const p = node.parentNode;
-              if (!p || (p.classList && p.classList.contains('one-glyph')))
-                return NodeFilter.FILTER_REJECT;
-              if (p.closest && p.closest('.no-one-stylize'))
-                return NodeFilter.FILTER_REJECT;
-              return NodeFilter.FILTER_ACCEPT;
-            }
-          }
-        );
-        const nodes = [];
-        while (walker.nextNode()) nodes.push(walker.currentNode);
-
-        nodes.forEach(node => {
-          const txt = node.nodeValue;
-          if (!txt || txt.indexOf('1') === -1) return;
-          const frag = document.createDocumentFragment();
-          for (let i=0;i<txt.length;i++){
-            const ch = txt[i];
-            if (ch === '1'){
-              const span = document.createElement('span');
-              span.className = 'one-glyph';
-              span.textContent = '1';
-              frag.appendChild(span);
-            } else {
-              frag.appendChild(document.createTextNode(ch));
-            }
-          }
-          node.parentNode.replaceChild(frag, node);
-        });
-      }
-
-      window.__wrapOnes = wrapOnes;
-
-      document.querySelectorAll('.pnl-card')
-        .forEach(card => wrapOnes(card));
-
-      const container = document.getElementById('pnlBackdrop');
-      if (container) {
-        let rafId = null;
-        const mo = new MutationObserver(() => {
-          if (rafId) cancelAnimationFrame(rafId);
-          rafId = requestAnimationFrame(()=> {
-            document.querySelectorAll('.pnl-card')
-              .forEach(card => wrapOnes(card));
-          });
-        });
-        mo.observe(container, {subtree:true, childList:true, characterData:true});
-      }
+      renderCalendar();
     })();
   </script>
 </body>
