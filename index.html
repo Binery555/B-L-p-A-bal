@@ -423,24 +423,35 @@
       display:flex;
       gap:20px;
       padding:6px var(--pad-x) 0;
-      border-bottom:1px solid rgba(240,242,246,.05);
+      border-bottom:none !important;
+      box-shadow:none !important;
     }
     .history-segment-tab{
       position:relative;
       padding:10px 0 12px;
       font-size:var(--fs-14);
       color:var(--text-2);
+      text-decoration:none;
+      border-bottom:none !important;
+      box-shadow:none !important;
+    }
+    .history-segment-tab::after{
+      content:"";
+      position:absolute;
+      left:50%;
+      transform:translateX(-50%);
+      bottom:0;
+      width:0;
+      height:3px;
+      background:var(--accent);
+      border-radius:999px;
+      opacity:0;
+      transition:width .18s ease, opacity .18s ease;
     }
     .history-segment-tab.is-active{ color:var(--text); }
     .history-segment-tab.is-active::after{
-      content:"";
-      position:absolute;
-      left:0;
-      bottom:0;
-      width:20px;
-      height:3px;
-      background:var(--accent);
-      border-radius:3px;
+      width:26px;
+      opacity:1;
     }
 
     .history-icon{ width:22px; height:22px; }
@@ -576,7 +587,6 @@
       opacity:1 !important;
     }
 
-    /* UPDATED: remove white line under subtabs, keep Overview white, others same as Net profit/loss label */
     .history-subtabs{
       display:flex;
       gap:18px;
@@ -600,8 +610,17 @@
     }
 
     .history-subtab::after{
-      display:none !important;
-      content:none !important;
+      content:"";
+      position:absolute;
+      left:50%;
+      transform:translateX(-50%);
+      bottom:0;
+      width:0;
+      height:3px;
+      background:var(--accent);
+      border-radius:999px;
+      opacity:0;
+      transition:width .18s ease, opacity .18s ease;
     }
 
     .history-subtab.is-active{
@@ -612,8 +631,8 @@
     }
 
     .history-subtab.is-active::after{
-      display:none !important;
-      content:none !important;
+      width:22px;
+      opacity:1;
     }
 
     .history-daily{ padding:12px var(--pad-x) 0; }
@@ -765,6 +784,30 @@
     .history-day--neg{
       background:linear-gradient(180deg, rgba(244,95,122,.14), rgba(244,95,122,.08));
       border:1px solid rgba(244,95,122,.10);
+    }
+
+    .history-day--zero{
+      background:#273142;
+      border:1px solid rgba(255,255,255,.03);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.02);
+    }
+    .history-day--zero .history-day__num{
+      position:absolute;
+      top:11px;
+      left:50%;
+      transform:translateX(-50%);
+      color:#F4F7FB;
+      font-size:13px;
+      font-weight:600;
+      text-align:center;
+    }
+    .history-day--zero .history-day__val{
+      align-self:center;
+      margin-top:auto;
+      padding-bottom:6px;
+      color:#778294;
+      font-size:10px;
+      font-weight:500;
     }
 
     .history-day--pending{
@@ -1739,26 +1782,35 @@
 
       const profitDays = new Map();
       const lossDays = new Map();
+      const zeroDays = new Map();
 
       const isCurrentMonth = (y === currentYear && m === currentMonth);
       const maxDay = isCurrentMonth ? currentDay : dim;
 
-      const lossCount = randInt(2, 3);
       const possibleDays = Array.from({length: maxDay}, (_,i)=>i+1);
-
       shuffle(possibleDays);
+
+      const lossCount = randInt(2, 3);
       const chosenLosses = possibleDays.slice(0, lossCount).sort((a,b)=>a-b);
+      const remainingAfterLoss = possibleDays.filter(day => !chosenLosses.includes(day));
+
+      const zeroCount = Math.random() < 0.5 ? 1 : 3;
+      const chosenZeros = shuffle(remainingAfterLoss.slice()).slice(0, Math.min(zeroCount, remainingAfterLoss.length)).sort((a,b)=>a-b);
 
       chosenLosses.forEach(day=>{
         lossDays.set(day, -round2(randBetween(rng, 25, 50)));
       });
 
+      chosenZeros.forEach(day=>{
+        zeroDays.set(day, 0);
+      });
+
       for(let d=1; d<=maxDay; d++){
-        if(lossDays.has(d)) continue;
+        if(lossDays.has(d) || zeroDays.has(d)) continue;
         profitDays.set(d, round2(randBetween(rng, 100, 1000)));
       }
 
-      return { profitDays, lossDays, dim, maxDay, isCurrentMonth };
+      return { profitDays, lossDays, zeroDays, dim, maxDay, isCurrentMonth };
     }
 
     function buildYearSummary(){
@@ -1787,14 +1839,16 @@
         mon.lossDays = new Map([...mon.lossDays.entries()].map(([k,v])=>[k, round2(v)]));
       });
 
-      /* UPDATED: sync Today's Realized PNL to the last day of the report */
       const currentMon = months.find(x => x.y === currentYear && x.m === currentMonth);
       if (currentMon) {
         currentMon.profitDays.delete(currentDay);
         currentMon.lossDays.delete(currentDay);
+        currentMon.zeroDays.delete(currentDay);
 
         const syncedTodayValue = round2(realizedTodayUSD);
-        if (syncedTodayValue >= 0) {
+        if (syncedTodayValue === 0) {
+          currentMon.zeroDays.set(currentDay, 0);
+        } else if (syncedTodayValue > 0) {
           currentMon.profitDays.set(currentDay, syncedTodayValue);
         } else {
           currentMon.lossDays.set(currentDay, syncedTodayValue);
@@ -1919,8 +1973,17 @@
         val.className = "history-day__val";
 
         let value = null;
-        if(mon.lossDays.has(d)) value = mon.lossDays.get(d);
-        else if(mon.profitDays.has(d)) value = mon.profitDays.get(d);
+        let dayType = null;
+        if(mon.lossDays.has(d)) {
+          value = mon.lossDays.get(d);
+          dayType = 'neg';
+        } else if(mon.profitDays.has(d)) {
+          value = mon.profitDays.get(d);
+          dayType = 'pos';
+        } else if(mon.zeroDays.has(d)) {
+          value = 0;
+          dayType = 'zero';
+        }
 
         const isPending = d > mon.maxDay;
         if(isPending){
@@ -1933,19 +1996,24 @@
           continue;
         }
 
-        if(value < 0){
+        if(dayType === 'neg'){
           btn.className = "history-day history-day--neg";
           val.classList.add("history-pnl--neg");
           val.textContent = `-${Math.abs(value).toFixed(2)}`;
+          btn.setAttribute("aria-label", `${d} ${yyyymm(y, m)}, loss ${Math.abs(value).toFixed(2)} USD`);
+        } else if(dayType === 'zero'){
+          btn.className = "history-day history-day--zero";
+          val.textContent = '0';
+          btn.setAttribute("aria-label", `${d} ${yyyymm(y, m)}, no profit or loss 0 USD`);
         } else {
           btn.className = "history-day history-day--pos";
           val.classList.add("history-pnl--pos");
           val.textContent = `+${Math.abs(value).toFixed(2)}`;
+          btn.setAttribute("aria-label", `${d} ${yyyymm(y, m)}, profit ${Math.abs(value).toFixed(2)} USD`);
         }
 
         btn.appendChild(num);
         btn.appendChild(val);
-        btn.setAttribute("aria-label", `${d} ${yyyymm(y, m)}, ${value >= 0 ? "profit" : "loss"} ${Math.abs(value).toFixed(2)} USD`);
         calGrid.appendChild(btn);
       }
 
