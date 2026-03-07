@@ -40,7 +40,7 @@
       --card-inset: 2px;
 
       --slot-top: 20px;
-      --slot-bottom: 14px;
+      --slot-bottom: 18px;
 
       --bottom-nav-h: 64px;
 
@@ -229,7 +229,7 @@
       background:transparent;
     }
     .bottom-nav button.active{color:#FFF}
-    .bottom-nav button span { font-size: 11px; }
+    .bottom-nav button span { font-size: 11px; margin-top: 2px; }
 
     .photo-slot{
       width:var(--slot-top); height:var(--slot-top);
@@ -244,7 +244,7 @@
       border:none; outline:none; background:transparent;
     }
     .photo-slot--bottom img{
-      width:90%; height:90%; margin:5%; object-fit:cover; display:block;
+      width:100%; height:100%; margin:0; object-fit:contain; display:block;
     }
     .photo-empty::after{
       content:''; position:absolute; inset:0; background:transparent;
@@ -416,6 +416,7 @@
       text-align:center;
       font-size:var(--fs-16);
       font-weight:650;
+      transform:translateX(10px);
     }
     .history-title-btn{
       display:inline-flex;
@@ -427,6 +428,7 @@
       border-radius:12px;
       justify-content:center;
       width:100%;
+      transform:translateX(4px);
     }
 
     .history-segment-tabs{
