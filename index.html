@@ -17,7 +17,7 @@
 
   <style>
     :root{
-      --app-w: 430px;
+      --app-w: 440px;
 
       --bg-base:#1E2128;
       --panel-bg:#1e2127;
@@ -62,7 +62,7 @@
       color:#E1E3E8;
     }
     .app{
-      width:var(--app-w);
+      width:min(100vw, var(--app-w));
       max-width:100%;
       background:var(--bg-base);color:#E1E3E8;
       border:none;border-radius:0;overflow:visible;position:relative;
@@ -94,7 +94,7 @@
     .balance-header span{display:flex;align-items:center;gap:12px}
     .balance-title{display:inline-flex;align-items:center;gap:8px;color:#F2F4F8;font-size:13px;line-height:1.15}
     .balance-title-text{display:inline-block;padding-bottom:5px;border-bottom:1px dotted rgba(255,255,255,.34)}
-    .balance-eye{display:inline-block;width:16px;height:10px;position:relative;flex:0 0 auto;background:center/contain no-repeat url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 16%27 fill=%27none%27%3E%3Cpath d=%27M1.5 8C4 4.5 7.2 2.5 12 2.5c4.8 0 8 2 10.5 5.5-2.5 3.5-5.7 5.5-10.5 5.5-4.8 0-8-2-10.5-5.5Z%27 stroke=%27%23737D90%27 stroke-width=%272%27 stroke-linejoin=%27round%27/%3E%3Ccircle cx=%2712%27 cy=%278%27 r=%273%27 stroke=%27%23737D90%27 stroke-width=%272%27/%3E%3C/svg%3E")}
+    .balance-eye{display:inline-block;width:16px;height:10px;position:relative;flex:0 0 auto;background:center/contain no-repeat url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 16%27 fill=%27none%27%3E%3Cpath d=%27M1.5 8C4 4.5 7.2 2.5 12 2.5c4.8 0 8 2 10.5 5.5-2.5 3.5-5.7 5.5-10.5 5.5-4.8 0-8-2-10.5-5.5Z%27 stroke=%27%23A1A6B0%27 stroke-width=%272%27 stroke-linejoin=%27round%27/%3E%3Ccircle cx=%2712%27 cy=%278%27 r=%273%27 stroke=%27%23A1A6B0%27 stroke-width=%272%27/%3E%3C/svg%3E"); margin-left:-3px}
     .balance-amount{display:flex;align-items:flex-end;margin:8px 0 8px -2px}
     .amount{font-size:28px;font-weight:600}
     .currency{margin-left:6px;color:#FFF;font-size:12px;display:inline-flex;align-items:center;gap:4px}
@@ -212,7 +212,7 @@
       bottom:0;
       left:50%;
       transform:translateX(-50%);
-      width:var(--app-w);
+      width:min(100vw, var(--app-w));
       background:#1e2128;
       display:flex;
       padding:8px 0 calc(8px + env(safe-area-inset-bottom, 0px));
@@ -393,13 +393,23 @@
     }
     .history-app::-webkit-scrollbar{ display:none; }
 
-    .history-app-header{ padding:calc(1cm + 10px) 0 6px; }
+    .history-app-header{ padding:1.6cm 0 6px; }
     .history-appbar{
       display:grid;
-      grid-template-columns:44px 1fr 44px;
+      grid-template-columns:24px 1fr 44px;
       align-items:center;
-      padding:10px var(--pad-x) 6px;
-      gap:6px;
+      padding:0 var(--pad-x) 6px;
+      gap:0;
+    }
+    #historyCloseBtn{
+      width:24px;
+      height:24px;
+      min-width:24px;
+      min-height:24px;
+      justify-self:start;
+      border-radius:0;
+      padding:0;
+      margin:0;
     }
     .history-appbar__title{
       margin:0;
@@ -472,6 +482,17 @@
 
     .history-pnl-summary{ padding:14px var(--pad-x) 8px; }
     .history-pnl-summary__header{ display:flex; align-items:center; gap:8px; }
+    .history-pnl-summary__header .history-icon-btn{
+      width:28px;
+      height:28px;
+      margin-left:-3px;
+      color:rgba(213,218,225,.7);
+      transform:translateX(-4px);
+    }
+    .history-pnl-summary__header .history-icon-btn .history-icon{
+      width:17px;
+      height:17px;
+    }
     .history-section-label{ margin:0; font-size:var(--fs-14); color:var(--text-2); font-weight:550; }
 
     .history-pnl-big{
@@ -793,18 +814,18 @@
     }
     .history-day--zero .history-day__num{
       position:absolute;
-      top:11px;
+      top:10px;
       left:50%;
-      transform:translateX(-50%);
+      transform:translateX(-45%);
       color:#F4F7FB;
       font-size:13px;
       font-weight:600;
       text-align:center;
     }
     .history-day--zero .history-day__val{
+      position:relative;
       align-self:center;
-      margin-top:auto;
-      padding-bottom:6px;
+      padding-top:18px;
       color:#778294;
       font-size:10px;
       font-weight:500;
@@ -853,6 +874,12 @@
 
     .history-app-footer{ padding:0; display:none; }
     .history-home-indicator{ display:none !important; }
+
+    @media (max-width: 440px){
+      .app, .bottom-nav{ width:100%; }
+      .pnl-scene{ max-width:100%; border-radius:20px; }
+      .history-modal-sheet, .history-app{ width:100%; max-width:100%; }
+    }
   </style>
 </head>
 
@@ -1230,6 +1257,86 @@
     let walletBalance = 0;
     let unrealizedSum = 0;
     let targetMarginBalance = 0;
+    const SNAPSHOT_KEY = "pnl_page_session_snapshot_v2";
+    const navigationEntries = performance.getEntriesByType('navigation');
+    const NAV_TYPE = navigationEntries[0] ? navigationEntries[0].type : 'navigate';
+    const IS_RELOAD = NAV_TYPE === 'reload';
+
+    function mapToEntries(mapObj){
+      if (!(mapObj instanceof Map)) return [];
+      return Array.from(mapObj.entries());
+    }
+    function entriesToMap(entries){
+      return new Map(Array.isArray(entries) ? entries : []);
+    }
+    function serializeHistorySummary(summary){
+      if (!summary) return null;
+      return {
+        ...summary,
+        months: Array.isArray(summary.months) ? summary.months.map(mon => ({
+          ...mon,
+          profitDays: mapToEntries(mon.profitDays),
+          lossDays: mapToEntries(mon.lossDays),
+          zeroDays: mapToEntries(mon.zeroDays)
+        })) : []
+      };
+    }
+    function deserializeHistorySummary(summary){
+      if (!summary) return null;
+      return {
+        ...summary,
+        months: Array.isArray(summary.months) ? summary.months.map(mon => ({
+          ...mon,
+          profitDays: entriesToMap(mon.profitDays),
+          lossDays: entriesToMap(mon.lossDays),
+          zeroDays: entriesToMap(mon.zeroDays)
+        })) : []
+      };
+    }
+    function serializeTrade(t){
+      return {
+        sym: t.sym,
+        leverage: t.leverage,
+        entry: t.entry,
+        mark: t.mark,
+        usedMargin: t.usedMargin,
+        effMargin: t.effMargin,
+        mmr: t.mmr,
+        qty: t.qty,
+        side: t.side,
+        marginMode: t.marginMode || 'Cross'
+      };
+    }
+    function saveSessionSnapshot(){
+      try{
+        const payload = {
+          walletBalance,
+          unrealizedSum,
+          targetMarginBalance,
+          realizedTodayUSD,
+          realizedTodayPct,
+          historySummary: serializeHistorySummary(historySummary),
+          trades: trades.map(serializeTrade)
+        };
+        sessionStorage.setItem(SNAPSHOT_KEY, JSON.stringify(payload));
+      }catch(e){}
+    }
+    function loadSessionSnapshot(){
+      try{
+        const raw = sessionStorage.getItem(SNAPSHOT_KEY);
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        if (!parsed || !Array.isArray(parsed.trades) || !parsed.historySummary) return null;
+        parsed.historySummary = deserializeHistorySummary(parsed.historySummary);
+        return parsed;
+      }catch(e){
+        return null;
+      }
+    }
+    function clearTradePanels(){
+      trades.splice(0, trades.length);
+      if (feedDiv) feedDiv.innerHTML = '';
+    }
 
     function refreshTop(){
       amountEl.textContent   = showTop ? fmtMoney(targetMarginBalance) : "•••••••";
@@ -1501,9 +1608,21 @@
       if (currentSharedTrade === t) updatePNLCardFromTrade(t);
     }
 
-    async function seedTrades(){
+    async function seedTrades(snapshot=null){
+      clearTradePanels();
       const empty=document.getElementById("emptyState");
       if(empty) empty.remove();
+
+      if (snapshot && Array.isArray(snapshot.trades) && snapshot.trades.length) {
+        snapshot.trades.forEach(state => {
+          const panelState = createPanel(state);
+          trades.push(panelState);
+          feedDiv.appendChild(panelState.node);
+        });
+        sizeFeed();
+        return;
+      }
+
       await loadExchangeMeta();
 
       const res=await fetch('https://fapi.binance.com/fapi/v1/premiumIndex');
@@ -1543,29 +1662,7 @@
     }
 
     function connectFuturesMarkWS(){
-      const WS_URL='wss://fstream.binance.com/ws/!markPrice@arr';
-      let ws=new WebSocket(WS_URL);
-      ws.onmessage=(evt)=>{
-        let data;
-        try{ data=JSON.parse(evt.data);}catch{return;}
-        if(!Array.isArray(data)) return;
-        let touched=false;
-        for(const o of data){
-          const sym=o.s;
-          const mp=parseFloat(o.p);
-          if(!isFinite(mp)) continue;
-          for(const t of trades){
-            if(t.sym===sym){
-              t.mark=mp;
-              renderTrade(t);
-              touched=true;
-            }
-          }
-        }
-        if(touched) recalcAccountTopFromTrades();
-      };
-      ws.onclose=()=> setTimeout(connectFuturesMarkWS, 2000);
-      ws.onerror=()=>{ try{ ws.close(); }catch{} };
+      return;
     }
 
     const pnlEls = {
@@ -1831,7 +1928,7 @@
         months.push({ y, m, ...monthData });
       }
 
-      const targetProfit = round2(randBetween(mulberry32(Date.now() >>> 0), 15000, 20000));
+      const targetProfit = round2(randBetween(mulberry32((currentYear * 10000 + currentMonth * 100 + currentDay) >>> 0), 15000, 20000));
       const scale = totalProfit > 0 ? targetProfit / totalProfit : 1;
 
       months.forEach(mon=>{
@@ -1870,7 +1967,7 @@
     }
 
     function syncHistoryFromTop(){
-      historySummary = buildYearSummary();
+      if (!historySummary) historySummary = buildYearSummary();
 
       const currentMon = historySummary.months.find(x=>x.y===currentYear && x.m===currentMonth);
       let todayAmt = 0;
@@ -2046,18 +2143,33 @@
     (async function init(){
       sizeFeed();
       initPhotoSlots();
-      await seedTrades();
 
-      recalcAccountTopFromTrades();
-      const seededUnreal = unrealizedSum;
-      const desiredMarginBalance = randInt(MB_MIN, MB_MAX);
-      walletBalance = round2(Math.max(0, desiredMarginBalance - seededUnreal));
-      targetMarginBalance = round2(walletBalance + seededUnreal);
+      const savedSnapshot = !IS_RELOAD ? loadSessionSnapshot() : null;
 
-      realizedTodayUSD = randInt(DAILY_PNL_MIN, DAILY_PNL_MAX);
-      realizedTodayPct = walletBalance > 0 ? (realizedTodayUSD / walletBalance) * 100 : 0;
+      if (savedSnapshot) {
+        await seedTrades(savedSnapshot);
+        walletBalance = Number(savedSnapshot.walletBalance) || 0;
+        unrealizedSum = Number(savedSnapshot.unrealizedSum) || 0;
+        targetMarginBalance = Number(savedSnapshot.targetMarginBalance) || 0;
+        realizedTodayUSD = Number(savedSnapshot.realizedTodayUSD) || 0;
+        realizedTodayPct = Number(savedSnapshot.realizedTodayPct) || 0;
+        historySummary = savedSnapshot.historySummary;
+      } else {
+        await seedTrades();
+
+        recalcAccountTopFromTrades();
+        const seededUnreal = unrealizedSum;
+        const desiredMarginBalance = randInt(MB_MIN, MB_MAX);
+        walletBalance = round2(Math.max(0, desiredMarginBalance - seededUnreal));
+        targetMarginBalance = round2(walletBalance + seededUnreal);
+
+        realizedTodayUSD = randInt(DAILY_PNL_MIN, DAILY_PNL_MAX);
+        realizedTodayPct = walletBalance > 0 ? (realizedTodayUSD / walletBalance) * 100 : 0;
+        historySummary = buildYearSummary();
+        saveSessionSnapshot();
+      }
+
       refreshTop();
-
       connectFuturesMarkWS();
       setupSaveOnlyCard();
       setSlide(0, true);
