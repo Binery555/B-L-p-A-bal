@@ -62,7 +62,7 @@
       --vh: 1vh;
 
       /* Earn */
-      --earn-card-bg:#1e2127;
+      --earn-card-bg:var(--panel-bg);
       --earn-row-hover:#2a303b;
       --earn-text:#f2f4f8;
       --earn-chevron:#6b717e;
@@ -96,6 +96,7 @@
       border-bottom:none !important;
       padding-bottom:8px; margin-bottom:8px;
       padding-top: env(safe-area-inset-top, 0px);
+      transform: translateX(0.1cm);
     }
 
     .top-toggle{
@@ -127,7 +128,7 @@
     .sub-toggle .toggle-btn{padding:4px 8px;font-size:11px;color:#A1A6B0;border-radius:6px;background:transparent;}
     .sub-toggle .toggle-btn.active{background:#323742;color:#FFF}
 
-    .balance-panel{margin:12px 0}
+    .balance-panel{margin:12px 0;transform: translateX(0.1cm);}
     .balance-header{display:flex;justify-content:space-between;align-items:flex-start;color:#A1A6B0;font-size:12px}
     .balance-header span{display:flex;align-items:center;gap:12px}
     .balance-title{display:inline-flex;align-items:center;gap:8px;color:#F2F4F8;font-size:13px;line-height:1.15}
@@ -159,7 +160,7 @@
     }
     .earn-card{
       width:100%;
-      background:var(--earn-card-bg);
+      background:var(--panel-bg);
       border-radius:16px;
       padding:3px 6px;
       border:1px solid rgba(255,255,255,0.08);
@@ -242,11 +243,11 @@
       margin-right:3px;
     }
     .earn-chevron{
-      width:9px;
-      height:9px;
+      width:13px;
+      height:13px;
       display:block;
-      flex:0 0 9px;
-      margin-top:2px;
+      flex:0 0 13px;
+      margin-top:0;
     }
     .earn-chevron path{
       stroke:var(--earn-chevron);
@@ -472,17 +473,11 @@
     .photo-slot--bottom{ width:var(--slot-bottom); height:var(--slot-bottom); border-radius:3px; }
     .photo-slot input[type="file"]{ position:absolute; inset:0; opacity:0; cursor:pointer; }
     .photo-slot img{
-      width:88%; height:88%; margin:6%;
-      object-fit:cover; display:block;
-      border:none; outline:none; background:transparent;
-      image-rendering:auto;
+      width:88%; height:88%; margin:6%; object-fit:cover; display:block;
+      border:none; outline:none; background:transparent; image-rendering:auto;
     }
-    .photo-slot--bottom img{
-      width:90%; height:90%; margin:5%; object-fit:cover; display:block;
-    }
-    .photo-empty::after{
-      content:''; position:absolute; inset:0; background:transparent;
-    }
+    .photo-slot--bottom img{ width:90%; height:90%; margin:5%; object-fit:cover; display:block; }
+    .photo-empty::after{ content:''; position:absolute; inset:0; background:transparent; }
 
     .pnl-modal-backdrop,
     .history-modal-backdrop{
@@ -870,19 +865,52 @@
     }
     .history-range-picker::-webkit-scrollbar{ display:none; }
     .history-range-pill{
-      background:transparent;border:0;color:rgba(213,218,225,.7) !important;font-size:var(--fs-13) !important;font-weight:400 !important;padding:6px 6px;border-radius:999px;white-space:nowrap;
+      background:transparent;border:0;color:rgba(213,218,225,.7) !important;font-size:var(--fs-13) !important;font-weight:400 !important;padding:6px 6px;border-radius:10px;white-space:nowrap;
     }
     .history-range-pill.is-active{
-      background:rgba(240,242,246,.08);border:1px solid rgba(240,242,246,.16);color:rgba(213,218,225,.7) !important;font-size:var(--fs-13) !important;font-weight:400 !important;padding:6px 10px;
+      background:#273142;
+      border:1px solid rgba(255,255,255,.04);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.02);
+      color:#FFFFFF !important;
+      font-size:var(--fs-13) !important;
+      font-weight:400 !important;
+      padding:6px 10px;
+      border-radius:10px;
     }
 
     .history-totals{ margin:0; padding:0 0 6px; }
     .history-totals__row{
       display:grid;grid-template-columns:1fr auto;gap:12px;padding:8px 0;
+      position:relative;
     }
-    .history-totals__row dt{ color:rgba(213,218,225,.7); font-size:var(--fs-13); }
+    .history-totals__row dt{
+      color:rgba(213,218,225,.7);
+      font-size:var(--fs-13);
+      display:inline-block;
+      width:fit-content;
+      border-bottom:1px dotted rgba(213,218,225,.65);
+      line-height:1.15;
+      padding-bottom:3px;
+    }
     .history-totals__row dd{
       margin:0;font-size:var(--fs-13);font-weight:650;font-variant-numeric: tabular-nums;font-family:var(--num-font);
+    }
+
+    .history-totals__row--net .history-totals__chevron{
+      position:absolute;
+      left:50%;
+      top:50%;
+      width:1em;
+      height:1em;
+      transform:translate(-50%, 7px);
+      opacity:.72;
+      pointer-events:none;
+      display:block;
+    }
+    .history-totals__row--net .history-totals__chevron svg{
+      display:block;
+      width:100%;
+      height:100%;
     }
 
     #histNetProfit,
@@ -935,16 +963,51 @@
 
     .history-calendar{ padding:12px 0 0; }
     .history-dow{
-      display:grid;grid-template-columns:repeat(7, minmax(0,1fr));gap:10px;padding:6px 2px 0;color:rgba(213,218,225,.58);font-size:var(--fs-12);letter-spacing:.08em;
+      display:grid;grid-template-columns:repeat(7, minmax(0,1fr));gap:8px;padding:6px 4px 0;color:rgba(213,218,225,.58);font-size:var(--fs-12);letter-spacing:.08em;
     }
     .history-dow span{ text-align:center; }
 
+    .history-calendar-viewport{
+      overflow:hidden;
+      position:relative;
+    }
+
     .history-calendar-grid{
-      margin-top:10px;display:grid;grid-template-columns:repeat(7, minmax(0,1fr));gap:10px;
+      margin-top:10px;display:grid;grid-template-columns:repeat(7, minmax(0,1fr));gap:8px;padding-right:4px;
+    }
+
+    .history-calendar-grid.is-sliding-prev{
+      animation: histSlidePrev .28s ease;
+    }
+    .history-calendar-grid.is-sliding-next{
+      animation: histSlideNext .28s ease;
+    }
+    .history-month-nav__label.is-sliding-prev{
+      animation: histLabelPrev .28s ease;
+    }
+    .history-month-nav__label.is-sliding-next{
+      animation: histLabelNext .28s ease;
+    }
+
+    @keyframes histSlidePrev{
+      from{ transform:translateX(-26px); opacity:.45; }
+      to{ transform:translateX(0); opacity:1; }
+    }
+    @keyframes histSlideNext{
+      from{ transform:translateX(26px); opacity:.45; }
+      to{ transform:translateX(0); opacity:1; }
+    }
+    @keyframes histLabelPrev{
+      from{ transform:translateX(-14px); opacity:.55; }
+      to{ transform:translateX(0); opacity:1; }
+    }
+    @keyframes histLabelNext{
+      from{ transform:translateX(14px); opacity:.55; }
+      to{ transform:translateX(0); opacity:1; }
     }
 
     .history-day{
-      position:relative;display:flex;flex-direction:column;justify-content:space-between;gap:6px;padding:10px;min-height:52px;aspect-ratio:1/1;border-radius:6px;background:transparent;border:0;text-align:left;cursor:pointer;font-variant-numeric: tabular-nums;
+      position:relative;display:flex;flex-direction:column;justify-content:space-between;gap:5px;padding:9px;min-height:48px;aspect-ratio:1/1;border-radius:6px;background:transparent;border:0;text-align:left;cursor:pointer;font-variant-numeric: tabular-nums;
     }
     .history-day__num{
       font-size:11px;font-weight:500;color:rgba(240,242,246,.92);line-height:1;font-family:var(--num-font);z-index:2;
@@ -1282,7 +1345,7 @@
               </span>
 
               <span class="earn-row__right">
-                <span class="earn-apr"><span class="earn-apr__tag">APR</span>1.11%</span>
+                <span class="earn-apr" id="earnApr1"><span class="earn-apr__tag">APR</span>1.11%</span>
                 <svg class="earn-chevron" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                   <path d="M9 5l7 7-7 7"/>
                 </svg>
@@ -1302,7 +1365,7 @@
               </span>
 
               <span class="earn-row__right">
-                <span class="earn-apr"><span class="earn-apr__tag">APR</span>0.82%</span>
+                <span class="earn-apr" id="earnApr2"><span class="earn-apr__tag">APR</span>0.82%</span>
                 <svg class="earn-chevron" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                   <path d="M9 5l7 7-7 7"/>
                 </svg>
@@ -1322,7 +1385,7 @@
               </span>
 
               <span class="earn-row__right">
-                <span class="earn-apr"><span class="earn-apr__tag">APR</span>3.36%</span>
+                <span class="earn-apr" id="earnApr3"><span class="earn-apr__tag">APR</span>3.36%</span>
                 <svg class="earn-chevron" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                   <path d="M9 5l7 7-7 7"/>
                 </svg>
@@ -1635,15 +1698,20 @@
 
             <dl class="history-totals">
               <div class="history-totals__row">
-                <dt>Total profit</dt>
+                <dt>Total Profit</dt>
                 <dd id="histTotalProfit">0.00 <span class="history-unit">USD</span></dd>
               </div>
               <div class="history-totals__row">
-                <dt>Total loss</dt>
+                <dt>Total Loss</dt>
                 <dd id="histTotalLoss">0.00 <span class="history-unit">USD</span></dd>
               </div>
-              <div class="history-totals__row">
-                <dt>Net profit/ loss</dt>
+              <div class="history-totals__row history-totals__row--net">
+                <dt>Net Profit/Loss</dt>
+                <span class="history-totals__chevron" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none">
+                    <path d="M5 8l7 7 7-7" stroke="rgba(213,218,225,.72)" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </span>
                 <dd id="histNetProfit" class="history-pnl--pos">0.00 <span class="history-unit">USD</span></dd>
               </div>
             </dl>
@@ -1678,7 +1746,9 @@
               <div class="history-dow" aria-hidden="true">
                 <span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span>
               </div>
-              <div id="histCalGrid" class="history-calendar-grid" role="grid" aria-label="Daily PNL calendar"></div>
+              <div class="history-calendar-viewport">
+                <div id="histCalGrid" class="history-calendar-grid" role="grid" aria-label="Daily PNL calendar"></div>
+              </div>
             </div>
           </section>
         </main>
@@ -1801,6 +1871,21 @@
       return arr;
     }
     const randInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+    const randMoney2 = (min, max) => Math.round((min + Math.random() * (max - min)) * 100) / 100;
+    const randMoneyNot00 = (min, max, rng = Math.random) => {
+      const cents = Math.floor(min * 100);
+      const centsMax = Math.floor(max * 100);
+      let value = cents;
+      let guard = 0;
+      do{
+        value = Math.floor(rng() * (centsMax - cents + 1)) + cents;
+        guard++;
+      } while (value % 100 === 0 && guard < 1000);
+      if (value % 100 === 0) value += (value + 1 <= centsMax ? 1 : -1);
+      return value / 100;
+    };
+    const randBetweenIntRng = (rng, min, max) => Math.floor(rng() * (max - min + 1)) + min;
+    const monthDistanceFromCurrent = (y, m) => ((currentYear - y) * 12) + (currentMonth - m);
 
     function formatProfit(_sym, x) {
       const s = toFixedSafe(x, 2);
@@ -1878,12 +1963,26 @@
       });
     }
 
+    function randomApr(min, max){
+      return (Math.random() * (max - min) + min).toFixed(2);
+    }
+
+    function refreshEarnAprs(){
+      const a1 = document.getElementById('earnApr1');
+      const a2 = document.getElementById('earnApr2');
+      const a3 = document.getElementById('earnApr3');
+
+      if (a1) a1.innerHTML = `<span class="earn-apr__tag">APR</span>${randomApr(0.85, 1.85)}%`;
+      if (a2) a2.innerHTML = `<span class="earn-apr__tag">APR</span>${randomApr(0.55, 1.45)}%`;
+      if (a3) a3.innerHTML = `<span class="earn-apr__tag">APR</span>${randomApr(2.50, 4.25)}%`;
+    }
+
     const round2 = (x) => Math.round((Number(x)||0) * 100) / 100;
 
     const TRADE_MIN = 25, TRADE_MAX = 30;
     const MB_MIN = 10000, MB_MAX = 15000;
     const UNREAL_MIN = 6000, UNREAL_MAX = 8000;
-    const DAILY_PNL_MIN = 25, DAILY_PNL_MAX = 350;
+    const DAILY_PNL_MIN = 200, DAILY_PNL_MAX = 800;
     const SMALL_LOSS_MIN_COUNT = 1;
     const SMALL_LOSS_MAX_COUNT = 2;
     const LOSS_FRACTION_MIN = 0.18;
@@ -2689,19 +2788,26 @@
 
       const isCurrentMonth = (y === currentYear && m === currentMonth);
       const maxDay = isCurrentMonth ? currentDay : dim;
+      const monthDistance = monthDistanceFromCurrent(y, m);
+      const isActiveMonth = monthDistance >= 0 && monthDistance < 6;
+
+      if (!isActiveMonth){
+        for(let d = 1; d <= maxDay; d++) zeroDays.set(d, 0);
+        return { profitDays, lossDays, zeroDays, dim, maxDay, isCurrentMonth };
+      }
 
       const possibleDays = Array.from({length: maxDay}, (_,i)=>i+1);
       shuffle(possibleDays);
 
-      const lossCount = randInt(2, 3);
+      const lossCount = Math.min(maxDay, 4);
       const chosenLosses = possibleDays.slice(0, lossCount).sort((a,b)=>a-b);
       const remainingAfterLoss = possibleDays.filter(day => !chosenLosses.includes(day));
 
-      const zeroCount = Math.random() < 0.5 ? 1 : 3;
-      const chosenZeros = shuffle(remainingAfterLoss.slice()).slice(0, Math.min(zeroCount, remainingAfterLoss.length)).sort((a,b)=>a-b);
+      const zeroCount = Math.min(remainingAfterLoss.length, randBetweenIntRng(rng, 1, 3));
+      const chosenZeros = shuffle(remainingAfterLoss.slice()).slice(0, zeroCount).sort((a,b)=>a-b);
 
       chosenLosses.forEach(day=>{
-        lossDays.set(day, -round2(randBetween(rng, 25, 50)));
+        lossDays.set(day, -round2(randMoneyNot00(130, 200, rng)));
       });
 
       chosenZeros.forEach(day=>{
@@ -2710,7 +2816,9 @@
 
       for(let d=1; d<=maxDay; d++){
         if(lossDays.has(d) || zeroDays.has(d)) continue;
-        profitDays.set(d, round2(randBetween(rng, 100, 1000)));
+        const skew = Math.pow(rng(), 40);
+        const value = 200 + (skew * 600);
+        profitDays.set(d, round2(randMoneyNot00(Math.max(200, value - 0.49), Math.min(800, value + 0.49), rng)));
       }
 
       return { profitDays, lossDays, zeroDays, dim, maxDay, isCurrentMonth };
@@ -2734,23 +2842,14 @@
         months.push({ y, m, ...monthData });
       }
 
-      const targetProfit = round2(randBetween(mulberry32((currentYear * 10000 + currentMonth * 100 + currentDay) >>> 0), 15000, 20000));
-      const scale = totalProfit > 0 ? targetProfit / totalProfit : 1;
-
-      months.forEach(mon=>{
-        mon.profitDays = new Map([...mon.profitDays.entries()].map(([k,v])=>[k, round2(v * scale)]));
-        mon.lossDays = new Map([...mon.lossDays.entries()].map(([k,v])=>[k, round2(v)]));
-      });
-
       const currentMon = months.find(x => x.y === currentYear && x.m === currentMonth);
       if (currentMon) {
         currentMon.profitDays.delete(currentDay);
         currentMon.lossDays.delete(currentDay);
         currentMon.zeroDays.delete(currentDay);
 
-        const syncedTodayValue = round2(realizedTodayUSD);
-        if (syncedTodayValue === 0) currentMon.zeroDays.set(currentDay, 0);
-        else if (syncedTodayValue > 0) currentMon.profitDays.set(currentDay, syncedTodayValue);
+        const syncedTodayValue = round2(randMoneyNot00(DAILY_PNL_MIN, DAILY_PNL_MAX));
+        if (syncedTodayValue > 0) currentMon.profitDays.set(currentDay, syncedTodayValue);
         else currentMon.lossDays.set(currentDay, syncedTodayValue);
       }
 
@@ -2833,7 +2932,18 @@
     function daysInMonthUTC(y, m){ return new Date(Date.UTC(y, m, 0)).getUTCDate(); }
     function firstDowUTC(y, m){ return new Date(Date.UTC(y, m - 1, 1)).getUTCDay(); }
 
-    function renderCalendar(){
+    function applyCalendarSlide(direction){
+      calGrid.classList.remove('is-sliding-prev','is-sliding-next');
+      monthLabel.classList.remove('is-sliding-prev','is-sliding-next');
+      if(direction === 'prev' || direction === 'next'){
+        void calGrid.offsetWidth;
+        void monthLabel.offsetWidth;
+        calGrid.classList.add(direction === 'prev' ? 'is-sliding-prev' : 'is-sliding-next');
+        monthLabel.classList.add(direction === 'prev' ? 'is-sliding-prev' : 'is-sliding-next');
+      }
+    }
+
+    function renderCalendar(direction = null){
       if(!historySummary) historySummary = buildYearSummary();
 
       const {y, m} = months[monthIndex];
@@ -2922,18 +3032,20 @@
           calGrid.appendChild(empty);
         }
       }
+
+      applyCalendarSlide(direction);
     }
 
     prevBtn.addEventListener("click", () => {
       if(monthIndex > 0){
         monthIndex--;
-        renderCalendar();
+        renderCalendar('prev');
       }
     });
     nextBtn.addEventListener("click", () => {
       if(monthIndex < months.length - 1){
         monthIndex++;
-        renderCalendar();
+        renderCalendar('next');
       }
     });
 
@@ -2978,6 +3090,7 @@
       setBottomInset();
       initPhotoSlots();
       initEarnSwitches();
+      refreshEarnAprs();
 
       try {
         if (FORCE_NEW_SESSION) localStorage.removeItem(STORAGE_TRADES_KEY);
@@ -3001,13 +3114,16 @@
       walletBalance = round2(Math.max(0, desiredMarginBalance - seededUnreal));
       targetMarginBalance = round2(walletBalance + seededUnreal);
 
-      realizedTodayUSD = randInt(DAILY_PNL_MIN, DAILY_PNL_MAX);
+      historySummary = buildYearSummary();
+      const currentHistMonth = historySummary.months.find(x => x.y === currentYear && x.m === currentMonth);
+      realizedTodayUSD = currentHistMonth
+        ? (currentHistMonth.profitDays.get(currentDay) || currentHistMonth.lossDays.get(currentDay) || 0)
+        : randMoneyNot00(DAILY_PNL_MIN, DAILY_PNL_MAX);
       realizedTodayPct = walletBalance > 0
         ? (realizedTodayUSD / walletBalance) * 100
         : 0;
       refreshTop();
 
-      historySummary = buildYearSummary();
       syncHistoryFromTop();
       renderCalendar();
 
