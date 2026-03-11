@@ -335,6 +335,7 @@
     }
     .sub-nav-2 button{position:relative;padding:0 6px 8px;font-size:14px;font-weight:700;letter-spacing:.1px;color:var(--text-secondary);line-height:1}
     .sub-nav-2 button.active{color:#fff}
+    .sub-nav-2 button.active::after{content:"";position:absolute;left:50%;transform:translateX(-50%);bottom:-1px;width:22px;height:4px;background:var(--highlight);border-radius:999px;}
 
     .feed{
       overflow-y:auto; overscroll-behavior-y: contain;
