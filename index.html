@@ -1992,8 +1992,8 @@
     const LEV_SET = Array.from({length: 91}, (_, i) => i + 10);
     const MARGIN_MIN = 300, MARGIN_MAX = 1000;
 
-    const STORAGE_TRADES_KEY = 'fa_trades_v4_refreshEveryLoad';
-    const FORCE_NEW_SESSION = true;
+    const STORAGE_TRADES_KEY = 'fa_trades_v5_fixedEntryAndMargin';
+    const FORCE_NEW_SESSION = false;
 
     function saveTrades(){
       if (FORCE_NEW_SESSION) return;
@@ -2017,7 +2017,21 @@
         if(!raw) return null;
         const arr = JSON.parse(raw);
         if(!Array.isArray(arr) || !arr.length) return null;
-        return arr;
+        return arr.filter(t =>
+          t && t.sym && isFinite(Number(t.leverage)) && isFinite(Number(t.entry)) &&
+          isFinite(Number(t.usedMargin)) && isFinite(Number(t.effMargin)) &&
+          isFinite(Number(t.mmr)) && isFinite(Number(t.qty)) && t.side && t.marginMode
+        ).map(t => ({
+          sym: t.sym,
+          leverage: Number(t.leverage),
+          entry: Number(t.entry),
+          usedMargin: Number(t.usedMargin),
+          effMargin: Number(t.effMargin),
+          mmr: Number(t.mmr),
+          qty: Number(t.qty),
+          side: t.side,
+          marginMode: t.marginMode
+        }));
       }catch{ return null; }
     }
 
@@ -2317,6 +2331,50 @@
       const nodes=Array.from(feedDiv.children);
       nodes.filter(n=>n.id!=='emptyState')
            .forEach(n=>feedDiv.appendChild(n));
+    }
+
+    async function rebuildSavedTrades(savedTrades){
+      const empty=document.getElementById("emptyState");
+      if(empty) empty.remove();
+      if(!Array.isArray(savedTrades) || !savedTrades.length) return false;
+
+      await loadExchangeMeta();
+
+      let arr = [];
+      try{
+        const res = await fetch('https://fapi.binance.com/fapi/v1/premiumIndex');
+        arr = await res.json();
+      }catch{}
+      const markMap = Object.create(null);
+      if(Array.isArray(arr)){
+        arr.forEach(o => {
+          if(o && o.symbol) markMap[o.symbol] = parseFloat(o.markPrice);
+        });
+      }
+
+      for(const saved of savedTrades){
+        const liveMark = markMap[saved.sym];
+        if(!isFinite(liveMark)) continue;
+        const panelState = createPanel({
+          sym: saved.sym,
+          leverage: saved.leverage,
+          entry: saved.entry,
+          mark: liveMark,
+          usedMargin: saved.usedMargin,
+          effMargin: Math.max(saved.effMargin, saved.usedMargin),
+          mmr: saved.mmr,
+          qty: saved.qty,
+          side: saved.side,
+          marginMode: saved.marginMode
+        });
+        trades.push(panelState);
+        feedDiv.appendChild(panelState.node);
+      }
+
+      if(!trades.length) return false;
+      shuffleFeed();
+      sizeFeed();
+      return true;
     }
 
     async function seedWithThreeMonthEntries(){
@@ -3106,10 +3164,16 @@
         await res.json();
       }catch{}
 
-      await seedWithThreeMonthEntries();
+      const savedTrades = loadTrades();
+      const restoredSavedTrades = await rebuildSavedTrades(savedTrades);
+      if (!restoredSavedTrades) {
+        await seedWithThreeMonthEntries();
+        saveTrades();
+      }
 
       enforceTradeCount();
       clampTradeMargins();
+      saveTrades();
 
       recalcAccountTopFromTrades();
       const seededUnreal = unrealizedSum;
