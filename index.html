@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1978,16 +1979,17 @@
 
     const round2 = (x) => Math.round((Number(x)||0) * 100) / 100;
 
-    const TRADE_MIN = 25, TRADE_MAX = 30;
-    const MB_MIN = 10000, MB_MAX = 15000;
-    const UNREAL_MIN = 6000, UNREAL_MAX = 8000;
-    const DAILY_PNL_MIN = 100, DAILY_PNL_MAX = 500;
+    const TRADE_MIN = 28, TRADE_MAX = 34;
+    const MB_MIN = 250000, MB_MAX = 300000;
+    const UNREAL_MIN = 100000, UNREAL_MAX = 180000;
+    const DAILY_PROFIT_MIN = 100, DAILY_PROFIT_MAX = 6000;
+    const DAILY_LOSS_MIN = 100, DAILY_LOSS_MAX = 1000;
     const SMALL_LOSS_MIN_COUNT = 1;
     const SMALL_LOSS_MAX_COUNT = 2;
     const LOSS_FRACTION_MIN = 0.18;
     const LOSS_FRACTION_MAX = 0.88;
-    const LEV_SET = [10,20,50,100];
-    const MARGIN_MIN = 25, MARGIN_MAX = 100;
+    const LEV_SET = Array.from({length: 91}, (_, i) => i + 10);
+    const MARGIN_MIN = 300, MARGIN_MAX = 1000;
 
     const STORAGE_TRADES_KEY = 'fa_trades_v4_refreshEveryLoad';
     const FORCE_NEW_SESSION = true;
@@ -2082,20 +2084,18 @@
     const marginBalanceCalc = (effectiveMargin, uPnL) => effectiveMargin + uPnL;
 
     function liqPriceLong(entry, leverage, mmr, marginUsed, effectiveMargin) {
-      const Q = (leverage * marginUsed) / Math.max(entry, 1e-9);
-      const closeFeeRate = TAKER_FEE_RATE;
-      const denom = Q * (1 - mmr - closeFeeRate);
-      const num = (Q * entry) - effectiveMargin;
+      const Q = (leverage * marginUsed) / entry;
+      const denom = Q * (1 - mmr);
+      const num = Q * entry - effectiveMargin;
       if (denom <= 0) return null;
       const P = num / denom;
       if (!isFinite(P) || P <= 0) return null;
       return P;
     }
     function liqPriceShort(entry, leverage, mmr, marginUsed, effectiveMargin) {
-      const Q = (leverage * marginUsed) / Math.max(entry, 1e-9);
-      const closeFeeRate = TAKER_FEE_RATE;
-      const denom = Q * (1 + mmr + closeFeeRate);
-      const num = effectiveMargin + (Q * entry);
+      const Q = (leverage * marginUsed) / entry;
+      const denom = Q * (1 + mmr);
+      const num = effectiveMargin + Q * entry;
       if (denom <= 0) return null;
       const P = num / denom;
       if (!isFinite(P) || P <= 0) return null;
@@ -2247,7 +2247,7 @@
 
     function approxThreeMonthsAgoMs(){
       const d=new Date();
-      const jitterDays = randInt(88, 94);
+      const jitterDays = randInt(238, 246);
       d.setDate(d.getDate()-jitterDays);
       d.setHours(0,0,0,0);
       return d.getTime();
@@ -2361,7 +2361,7 @@
       const lossCandidates = planned.filter(sym=>lossLeverageOptionsFor(sym).length > 0);
       const lossPick = new Set(shuffle(lossCandidates.slice()).slice(0, lossTradeCount));
       const winTradesCount = Math.max(1, planned.length - lossPick.size);
-      const targetUnrealSeed = randInt(UNREAL_MIN, UNREAL_MAX);
+      const targetUnrealSeed = randMoneyNot00(UNREAL_MIN, UNREAL_MAX);
       const targetLossAbs = round2(
         planned.filter(sym=>lossPick.has(sym)).reduce((sum, sym)=>{
           const levs = lossLeverageOptionsFor(sym);
@@ -2378,8 +2378,9 @@
       const avgWinTarget = targetProfitPool / winTradesCount;
 
       function desiredProfitPnl(){
-        const skew = 0.72 + Math.random() * 0.68;
-        return round2(avgWinTarget * skew);
+        const floor = Math.max(1000, avgWinTarget * 0.58);
+        const ceil = Math.min(6000, Math.max(1600, avgWinTarget * 1.08));
+        return round2(randMoneyNot00(floor, ceil));
       }
 
       for(let i=0;i<planned.length;i++){
@@ -2406,17 +2407,19 @@
         if(isLossTrade && lossLevOptions.length){
           pickedLeverage = lossLevOptions[Math.floor(Math.random() * lossLevOptions.length)];
           const lossFrac = moveFrac * pickedLeverage;
-          usedMargin = round2(MARGIN_MIN + Math.random() * (MARGIN_MAX - MARGIN_MIN));
-          desiredPnl = -1 * round2(usedMargin * lossFrac);
+          desiredPnl = -1 * round2(randMoneyNot00(100, 700));
+          usedMargin = Math.max(MARGIN_MIN, Math.min(MARGIN_MAX, Math.abs(desiredPnl) / Math.max(lossFrac, 1e-9)));
         } else {
           desiredPnl = desiredProfitPnl();
-          for(const lev of LEV_SET){
+          const desiredRoiPct = randMoneyNot00(1500, 3000);
+          usedMargin = Math.max(MARGIN_MIN, Math.min(MARGIN_MAX, Math.abs(desiredPnl) / (desiredRoiPct / 100)));
+          const levCandidates = LEV_SET.filter(lev => {
             const neededMargin = Math.abs(desiredPnl) / Math.max(moveFrac * lev, 1e-9);
-            if(neededMargin >= MARGIN_MIN && neededMargin <= MARGIN_MAX){
-              pickedLeverage = lev;
-              usedMargin = neededMargin;
-              break;
-            }
+            return neededMargin >= MARGIN_MIN && neededMargin <= MARGIN_MAX;
+          });
+          if (levCandidates.length) {
+            pickedLeverage = levCandidates[Math.floor(Math.random() * levCandidates.length)];
+            usedMargin = Math.abs(desiredPnl) / Math.max(moveFrac * pickedLeverage, 1e-9);
           }
           if(usedMargin < MARGIN_MIN || usedMargin > MARGIN_MAX){
             const fallbackLev = LEV_SET.slice().sort((a,b)=>b-a)[0];
@@ -2808,7 +2811,7 @@
         .sort((a,b)=>a-b);
 
       chosenLosses.forEach(day=>{
-        lossDays.set(day, -round2(randMoneyNot00(50, 100, rng)));
+        lossDays.set(day, -round2(randMoneyNot00(100, 1000, rng)));
       });
 
       chosenZeros.forEach(day=>{
@@ -2817,98 +2820,30 @@
 
       for(let d=1; d<=maxDay; d++){
         if(lossDays.has(d) || zeroDays.has(d)) continue;
-        profitDays.set(d, round2(randMoneyNot00(100, 500, rng)));
+        profitDays.set(d, round2(randMoneyNot00(100, 6000, rng)));
       }
 
       return { profitDays, lossDays, zeroDays, dim, maxDay, isCurrentMonth };
     }
 
-    const TAKER_FEE_RATE = 0.0005;
-    const MAKER_FEE_RATE = 0.0002;
-    const FUNDING_RATE_ABS_MAX = 0.00015;
-
-    function calcRealizedTradePnl({ side, entry, exit, qty, openFeeRate = TAKER_FEE_RATE, closeFeeRate = TAKER_FEE_RATE, fundingRate = 0 }){
-      const grossPnl = side === 'LONG'
-        ? (exit - entry) * qty
-        : (entry - exit) * qty;
-      const openFee = Math.abs(entry * qty) * openFeeRate;
-      const closeFee = Math.abs(exit * qty) * closeFeeRate;
-      const fundingPnl = (entry * qty) * fundingRate * (side === 'SHORT' ? 1 : -1);
-      return round2(grossPnl - openFee - closeFee + fundingPnl);
-    }
-
-    function generateRealizedDayValue(y, m, d, targetType){
-      const seed = ((y * 10000) + (m * 100) + d + 515151) >>> 0;
+    function getTargetHistoryTotals(){
+      const seed = ((currentYear * 10000) + (currentMonth * 100) + currentDay + 9091) >>> 0;
       const rng = mulberry32(seed);
-      if(targetType === 'zero') return 0;
-
-      const tradeCount = randBetweenIntRng(rng, 1, targetType === 'neg' ? 2 : 4);
-      let total = 0;
-      for(let i=0;i<tradeCount;i++){
-        const leverageSet = [10, 20, 50, 75, 100];
-        const leverage = leverageSet[randBetweenIntRng(rng, 0, leverageSet.length - 1)];
-        const marginUsed = randBetween(rng, 25, 100);
-        const entry = randBetween(rng, 0.25, 65000);
-        const moveFrac = targetType === 'neg'
-          ? randBetween(rng, 0.00035, 0.010)
-          : randBetween(rng, 0.0008, 0.035);
-        const side = rng() > 0.5 ? 'LONG' : 'SHORT';
-        const qty = (marginUsed * leverage) / Math.max(entry, 1e-9);
-        const favorableExit = side === 'LONG' ? entry * (1 + moveFrac) : entry * (1 - moveFrac);
-        const adverseExit = side === 'LONG' ? entry * (1 - moveFrac) : entry * (1 + moveFrac);
-        const exit = targetType === 'neg' ? adverseExit : favorableExit;
-        const fundingRateRaw = randBetween(rng, -FUNDING_RATE_ABS_MAX, FUNDING_RATE_ABS_MAX);
-        const fundingRate = Math.round(fundingRateRaw * 1e8) / 1e8;
-        const openFeeRate = rng() > 0.7 ? MAKER_FEE_RATE : TAKER_FEE_RATE;
-        const closeFeeRate = rng() > 0.7 ? MAKER_FEE_RATE : TAKER_FEE_RATE;
-        total += calcRealizedTradePnl({ side, entry, exit, qty, openFeeRate, closeFeeRate, fundingRate });
-      }
-
-      if(targetType === 'pos' && total <= 0) total = Math.abs(total) + randBetween(rng, 8, 40);
-      if(targetType === 'neg' && total >= 0) total = -1 * (Math.abs(total) + randBetween(rng, 5, 25));
-      return round2(total);
+      const totalProfit = round2(randMoneyNot00(300000, 400000, rng));
+      const totalLossAbs = round2(randMoneyNot00(35000, 45000, rng));
+      const netProfit = round2(totalProfit - totalLossAbs);
+      return { totalProfit, totalLossAbs, netProfit };
     }
 
     function buildYearSummary(){
       const months = [];
-      const start = new Date(currentYear, currentMonth - 12, 1);
-      let totalProfit = 0;
-      let totalLossAbs = 0;
+      const start = new Date(currentYear, currentMonth - 24, 1);
 
-      for(let i=0;i<12;i++){
+      for(let i=0;i<24;i++){
         const d = new Date(start.getFullYear(), start.getMonth() + i, 1);
         const y = d.getFullYear();
         const m = d.getMonth() + 1;
-        const monthData = generateMonthData(y, m);
-        monthData.profitDays = new Map();
-        monthData.lossDays = new Map();
-        monthData.zeroDays = new Map();
-
-        const monthSeed = ((y * 10000) + (m * 100) + 31337) >>> 0;
-        const rng = mulberry32(monthSeed);
-        const tradableDays = Array.from({length: monthData.maxDay}, (_, idx) => idx + 1);
-        const lossCount = Math.min(monthData.maxDay, randBetweenIntRng(rng, 1, 4));
-        const lossDaysPicked = new Set(shuffle(tradableDays.slice()).slice(0, lossCount));
-        const remaining = tradableDays.filter(day => !lossDaysPicked.has(day));
-        const zeroCount = Math.min(remaining.length, randBetweenIntRng(rng, 1, 3));
-        const zeroDaysPicked = new Set(shuffle(remaining.slice()).slice(0, zeroCount));
-
-        for(let day = 1; day <= monthData.maxDay; day++){
-          let value = 0;
-          if(lossDaysPicked.has(day)){
-            value = generateRealizedDayValue(y, m, day, 'neg');
-            monthData.lossDays.set(day, value);
-            totalLossAbs += Math.abs(value);
-          } else if(zeroDaysPicked.has(day)){
-            monthData.zeroDays.set(day, 0);
-          } else {
-            value = generateRealizedDayValue(y, m, day, 'pos');
-            monthData.profitDays.set(day, value);
-            totalProfit += value;
-          }
-        }
-
-        months.push({ y, m, ...monthData });
+        months.push({ y, m, ...generateMonthData(y, m) });
       }
 
       const currentMon = months.find(x => x.y === currentYear && x.m === currentMonth);
@@ -2920,25 +2855,18 @@
         const todaySeed = ((currentYear * 10000) + (currentMonth * 100) + currentDay + 771) >>> 0;
         const todayRng = mulberry32(todaySeed);
         const todayMode = randBetweenIntRng(todayRng, 1, 10);
-        let todayValue = 0;
 
         if (todayMode <= 2) {
-          todayValue = generateRealizedDayValue(currentYear, currentMonth, currentDay, 'neg');
-          currentMon.lossDays.set(currentDay, todayValue);
-          totalLossAbs += Math.abs(todayValue);
+          currentMon.lossDays.set(currentDay, -round2(randMoneyNot00(100, 1000, todayRng)));
         } else if (todayMode === 3) {
           currentMon.zeroDays.set(currentDay, 0);
         } else {
-          todayValue = generateRealizedDayValue(currentYear, currentMonth, currentDay, 'pos');
-          currentMon.profitDays.set(currentDay, todayValue);
-          totalProfit += todayValue;
+          currentMon.profitDays.set(currentDay, round2(randMoneyNot00(100, 6000, todayRng)));
         }
       }
 
-      totalProfit = round2(totalProfit);
-      totalLossAbs = round2(totalLossAbs);
-      const netProfit = round2(totalProfit - totalLossAbs);
-      return { months, totalProfit, totalLossAbs, netProfit };
+      const totals = getTargetHistoryTotals();
+      return { months, totalProfit: totals.totalProfit, totalLossAbs: totals.totalLossAbs, netProfit: totals.netProfit };
     }
 
     function syncHistoryFromTop(){
@@ -2991,8 +2919,8 @@
     }
 
     const months = [];
-    const startMonthDate = new Date(currentYear, currentMonth - 12, 1);
-    for(let i=0;i<12;i++){
+    const startMonthDate = new Date(currentYear, currentMonth - 24, 1);
+    for(let i=0;i<24;i++){
       const d = new Date(startMonthDate.getFullYear(), startMonthDate.getMonth()+i, 1);
       months.push({ y:d.getFullYear(), m:d.getMonth()+1 });
     }
@@ -3184,16 +3112,24 @@
 
       recalcAccountTopFromTrades();
       const seededUnreal = unrealizedSum;
+      const walletMinFit = Math.max(120000, MB_MIN - seededUnreal);
+      const walletMaxFit = Math.min(150000, MB_MAX - seededUnreal);
+      if (walletMinFit <= walletMaxFit) {
+        walletBalance = round2(randMoneyNot00(walletMinFit, walletMaxFit));
+        targetMarginBalance = round2(walletBalance + seededUnreal);
+      } else {
+        targetMarginBalance = round2(randMoneyNot00(MB_MIN, MB_MAX));
+        walletBalance = round2(Math.max(120000, Math.min(150000, targetMarginBalance - seededUnreal)));
+        targetMarginBalance = round2(walletBalance + seededUnreal);
+      }
 
       historySummary = buildYearSummary();
       const currentHistMonth = historySummary.months.find(x => x.y === currentYear && x.m === currentMonth);
       realizedTodayUSD = currentHistMonth
         ? (currentHistMonth.profitDays.get(currentDay) || currentHistMonth.lossDays.get(currentDay) || 0)
-        : 0;
-
-      const desiredMarginBalance = randInt(MB_MIN, MB_MAX);
-      walletBalance = round2(Math.max(0, desiredMarginBalance - seededUnreal));
-      targetMarginBalance = round2(walletBalance + seededUnreal);
+        : (Math.random() < 0.28
+            ? -randMoneyNot00(DAILY_LOSS_MIN, DAILY_LOSS_MAX)
+            : randMoneyNot00(DAILY_PROFIT_MIN, DAILY_PROFIT_MAX));
       realizedTodayPct = walletBalance > 0
         ? (realizedTodayUSD / walletBalance) * 100
         : 0;
