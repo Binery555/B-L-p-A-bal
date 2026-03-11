@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1993,7 +1992,29 @@
     const MARGIN_MIN = 300, MARGIN_MAX = 1000;
 
     const STORAGE_TRADES_KEY = 'fa_trades_v5_fixedEntryAndMargin';
+    const STORAGE_ACCOUNT_KEY = 'fa_account_v1_walletPrecise';
     const FORCE_NEW_SESSION = false;
+
+    function saveAccountState(){
+      if (FORCE_NEW_SESSION) return;
+      try {
+        localStorage.setItem(STORAGE_ACCOUNT_KEY, JSON.stringify({
+          walletBalance: round2(walletBalance)
+        }));
+      } catch {}
+    }
+    function loadAccountState(){
+      if (FORCE_NEW_SESSION) return null;
+      try {
+        const raw = localStorage.getItem(STORAGE_ACCOUNT_KEY);
+        if (!raw) return null;
+        const data = JSON.parse(raw);
+        if (!data || !isFinite(Number(data.walletBalance))) return null;
+        return { walletBalance: round2(Number(data.walletBalance)) };
+      } catch {
+        return null;
+      }
+    }
 
     function saveTrades(){
       if (FORCE_NEW_SESSION) return;
@@ -3154,7 +3175,10 @@
       refreshEarnAprs();
 
       try {
-        if (FORCE_NEW_SESSION) localStorage.removeItem(STORAGE_TRADES_KEY);
+        if (FORCE_NEW_SESSION) {
+          localStorage.removeItem(STORAGE_TRADES_KEY);
+          localStorage.removeItem(STORAGE_ACCOUNT_KEY);
+        }
       } catch {}
 
       await loadExchangeMeta();
@@ -3179,13 +3203,22 @@
       const seededUnreal = unrealizedSum;
       const walletMinFit = Math.max(120000, MB_MIN - seededUnreal);
       const walletMaxFit = Math.min(150000, MB_MAX - seededUnreal);
-      if (walletMinFit <= walletMaxFit) {
+      const savedAccount = loadAccountState();
+      if (savedAccount && savedAccount.walletBalance >= walletMinFit && savedAccount.walletBalance <= walletMaxFit) {
+        walletBalance = round2(savedAccount.walletBalance);
+        targetMarginBalance = round2(walletBalance + seededUnreal);
+      } else if (walletMinFit <= walletMaxFit) {
         walletBalance = round2(randMoneyNot00(walletMinFit, walletMaxFit));
         targetMarginBalance = round2(walletBalance + seededUnreal);
+        saveAccountState();
       } else {
         targetMarginBalance = round2(randMoneyNot00(MB_MIN, MB_MAX));
         walletBalance = round2(Math.max(120000, Math.min(150000, targetMarginBalance - seededUnreal)));
+        if (Math.round(walletBalance * 100) % 100 === 0) {
+          walletBalance = round2(walletBalance + (walletBalance + 0.01 <= 150000 ? 0.01 : -0.01));
+        }
         targetMarginBalance = round2(walletBalance + seededUnreal);
+        saveAccountState();
       }
 
       historySummary = buildYearSummary();
