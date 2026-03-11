@@ -335,7 +335,7 @@
     }
     .sub-nav-2 button{position:relative;padding:0 6px 8px;font-size:14px;font-weight:700;letter-spacing:.1px;color:var(--text-secondary);line-height:1}
     .sub-nav-2 button.active{color:#fff}
-    .sub-nav-2 button.active::after{content:"";position:absolute;left:50%;transform:translateX(-50%);bottom:-1px;width:22px;height:4px;background:var(--highlight);border-radius:999px;}
+    .sub-nav-2 button.active::after{content:"";position:absolute;left:50%;transform:translateX(-50%);bottom:-6px;width:24px;height:4px;background:var(--highlight);border-radius:1px;}
 
     .feed{
       overflow-y:auto; overscroll-behavior-y: contain;
@@ -1820,6 +1820,7 @@
     let showTop = true;
     let realizedTodayUSD = 0;
     let realizedTodayPct = 0;
+    let dailyPnlForThisRefresh = 0;
     let walletBalance = 0;
     let unrealizedSum = 0;
     let targetMarginBalance = 0;
@@ -2853,16 +2854,12 @@
         currentMon.lossDays.delete(currentDay);
         currentMon.zeroDays.delete(currentDay);
 
-        const todaySeed = ((currentYear * 10000) + (currentMonth * 100) + currentDay + 771) >>> 0;
-        const todayRng = mulberry32(todaySeed);
-        const todayMode = randBetweenIntRng(todayRng, 1, 10);
-
-        if (todayMode <= 2) {
-          currentMon.lossDays.set(currentDay, -round2(randMoneyNot00(100, 1000, todayRng)));
-        } else if (todayMode === 3) {
+        if (dailyPnlForThisRefresh < 0) {
+          currentMon.lossDays.set(currentDay, dailyPnlForThisRefresh);
+        } else if (dailyPnlForThisRefresh === 0) {
           currentMon.zeroDays.set(currentDay, 0);
         } else {
-          currentMon.profitDays.set(currentDay, round2(randMoneyNot00(100, 6000, todayRng)));
+          currentMon.profitDays.set(currentDay, dailyPnlForThisRefresh);
         }
       }
 
@@ -3124,13 +3121,14 @@
         targetMarginBalance = round2(walletBalance + seededUnreal);
       }
 
+      dailyPnlForThisRefresh = round2(
+        Math.random() < 0.28
+          ? -randMoneyNot00(DAILY_LOSS_MIN, DAILY_LOSS_MAX)
+          : randMoneyNot00(DAILY_PROFIT_MIN, DAILY_PROFIT_MAX)
+      );
+
       historySummary = buildYearSummary();
-      const currentHistMonth = historySummary.months.find(x => x.y === currentYear && x.m === currentMonth);
-      realizedTodayUSD = currentHistMonth
-        ? (currentHistMonth.profitDays.get(currentDay) || currentHistMonth.lossDays.get(currentDay) || 0)
-        : (Math.random() < 0.28
-            ? -randMoneyNot00(DAILY_LOSS_MIN, DAILY_LOSS_MAX)
-            : randMoneyNot00(DAILY_PROFIT_MIN, DAILY_PROFIT_MAX));
+      realizedTodayUSD = dailyPnlForThisRefresh;
       realizedTodayPct = walletBalance > 0
         ? (realizedTodayUSD / walletBalance) * 100
         : 0;
