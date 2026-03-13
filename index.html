@@ -2855,10 +2855,87 @@
     }
 
     let historySummary = null;
+    const HISTORY_STORAGE_KEY = "futures_history_daily_pnl_v2";
     const todayLocal = new Date();
     const currentYear = todayLocal.getFullYear();
     const currentMonth = todayLocal.getMonth() + 1;
     const currentDay = todayLocal.getDate();
+
+    function getTodayKey(){
+      return `${currentYear}-${String(currentMonth).padStart(2,'0')}-${String(currentDay).padStart(2,'0')}`;
+    }
+
+    function mapToPlainObject(map){
+      return Object.fromEntries(Array.from(map.entries()));
+    }
+
+    function plainObjectToMap(obj){
+      return new Map(Object.entries(obj || {}).map(([k,v]) => [Number(k), Number(v)]));
+    }
+
+    function serializeHistorySummary(summary){
+      return {
+        savedForDate: getTodayKey(),
+        months: (summary.months || []).map(mon => ({
+          y: mon.y,
+          m: mon.m,
+          dim: mon.dim,
+          maxDay: mon.maxDay,
+          isCurrentMonth: !!mon.isCurrentMonth,
+          profitDays: mapToPlainObject(mon.profitDays),
+          lossDays: mapToPlainObject(mon.lossDays),
+          zeroDays: mapToPlainObject(mon.zeroDays)
+        })),
+        totalProfit: Number(summary.totalProfit || 0),
+        totalLossAbs: Number(summary.totalLossAbs || 0),
+        netProfit: Number(summary.netProfit || 0)
+      };
+    }
+
+    function deserializeHistorySummary(payload){
+      if(!payload || !Array.isArray(payload.months)) return null;
+      return {
+        months: payload.months.map(mon => ({
+          y: Number(mon.y),
+          m: Number(mon.m),
+          dim: Number(mon.dim),
+          maxDay: Number(mon.maxDay),
+          isCurrentMonth: !!mon.isCurrentMonth,
+          profitDays: plainObjectToMap(mon.profitDays),
+          lossDays: plainObjectToMap(mon.lossDays),
+          zeroDays: plainObjectToMap(mon.zeroDays)
+        })),
+        totalProfit: Number(payload.totalProfit || 0),
+        totalLossAbs: Number(payload.totalLossAbs || 0),
+        netProfit: Number(payload.netProfit || 0),
+        savedForDate: payload.savedForDate || ''
+      };
+    }
+
+    function saveHistorySummary(summary){
+      try{
+        localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(serializeHistorySummary(summary)));
+      }catch{}
+    }
+
+    function loadHistorySummary(){
+      try{
+        const raw = localStorage.getItem(HISTORY_STORAGE_KEY);
+        if(!raw) return null;
+        return deserializeHistorySummary(JSON.parse(raw));
+      }catch{
+        return null;
+      }
+    }
+
+    function getDeterministicDayValue(y, m, d){
+      const seed = ((y * 10000) + (m * 100) + d + 771) >>> 0;
+      const rng = mulberry32(seed);
+      const mode = randBetweenIntRng(rng, 1, 10);
+      if (mode <= 2) return -round2(randMoneyNot00(100, 1000, rng));
+      if (mode === 3) return 0;
+      return round2(randMoneyNot00(100, 6000, rng));
+    }
 
     function generateMonthData(y, m){
       const seed = (y * 1000 + m * 77 + 12345) >>> 0;
@@ -2931,21 +3008,72 @@
         currentMon.lossDays.delete(currentDay);
         currentMon.zeroDays.delete(currentDay);
 
-        const todaySeed = ((currentYear * 10000) + (currentMonth * 100) + currentDay + 771) >>> 0;
-        const todayRng = mulberry32(todaySeed);
-        const todayMode = randBetweenIntRng(todayRng, 1, 10);
-
-        if (todayMode <= 2) {
-          currentMon.lossDays.set(currentDay, -round2(randMoneyNot00(100, 1000, todayRng)));
-        } else if (todayMode === 3) {
+        const todayValue = getDeterministicDayValue(currentYear, currentMonth, currentDay);
+        if (todayValue < 0) {
+          currentMon.lossDays.set(currentDay, todayValue);
+        } else if (todayValue === 0) {
           currentMon.zeroDays.set(currentDay, 0);
         } else {
-          currentMon.profitDays.set(currentDay, round2(randMoneyNot00(100, 6000, todayRng)));
+          currentMon.profitDays.set(currentDay, todayValue);
         }
       }
 
       const totals = getTargetHistoryTotals();
       return { months, totalProfit: totals.totalProfit, totalLossAbs: totals.totalLossAbs, netProfit: totals.netProfit };
+    }
+
+    function getOrCreateHistorySummary(){
+      const saved = loadHistorySummary();
+      const todayKey = getTodayKey();
+
+      if(!saved){
+        const fresh = buildYearSummary();
+        saveHistorySummary(fresh);
+        return fresh;
+      }
+
+      if(saved.savedForDate === todayKey){
+        return saved;
+      }
+
+      const currentMon = saved.months.find(x => x.y === currentYear && x.m === currentMonth);
+      const canExtendCurrentMonth = currentMon
+        && saved.savedForDate
+        && /^\d{4}-\d{2}-\d{2}$/.test(saved.savedForDate)
+        && Number(saved.savedForDate.slice(0,4)) === currentYear
+        && Number(saved.savedForDate.slice(5,7)) === currentMonth
+        && Number(saved.savedForDate.slice(8,10)) < currentDay;
+
+      if(!canExtendCurrentMonth){
+        const rebuilt = buildYearSummary();
+        saveHistorySummary(rebuilt);
+        return rebuilt;
+      }
+
+      const lastSavedDay = Number(saved.savedForDate.slice(8,10));
+      currentMon.isCurrentMonth = true;
+      currentMon.maxDay = currentDay;
+
+      for(let day = lastSavedDay + 1; day <= currentDay; day++){
+        currentMon.profitDays.delete(day);
+        currentMon.lossDays.delete(day);
+        currentMon.zeroDays.delete(day);
+
+        const dayValue = getDeterministicDayValue(currentYear, currentMonth, day);
+        if(dayValue < 0){
+          currentMon.lossDays.set(day, dayValue);
+          saved.totalLossAbs = round2(Number(saved.totalLossAbs || 0) + Math.abs(dayValue));
+        }else if(dayValue === 0){
+          currentMon.zeroDays.set(day, 0);
+        }else{
+          currentMon.profitDays.set(day, dayValue);
+          saved.totalProfit = round2(Number(saved.totalProfit || 0) + dayValue);
+        }
+      }
+
+      saved.netProfit = round2(Number(saved.totalProfit || 0) - Number(saved.totalLossAbs || 0));
+      saveHistorySummary(saved);
+      return saved;
     }
 
     function syncHistoryFromTop(){
@@ -3202,7 +3330,7 @@
       walletBalance = FIXED_WALLET_BALANCE;
       targetMarginBalance = round2(walletBalance + seededUnreal);
 
-      historySummary = buildYearSummary();
+      historySummary = getOrCreateHistorySummary();
       const currentHistMonth = historySummary.months.find(x => x.y === currentYear && x.m === currentMonth);
       realizedTodayUSD = currentHistMonth
         ? (currentHistMonth.profitDays.get(currentDay) || currentHistMonth.lossDays.get(currentDay) || 0)
